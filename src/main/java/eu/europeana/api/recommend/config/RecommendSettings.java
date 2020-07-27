@@ -13,7 +13,7 @@ import javax.annotation.PostConstruct;
  * recommend.user.properties file
  *
  * @author Patrick Ehlert
- * Created on 22 Jul-2020
+ * Created on 22 Jul 2020
  */
 @Configuration
 @Component

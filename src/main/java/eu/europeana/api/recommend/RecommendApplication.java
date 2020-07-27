@@ -10,7 +10,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  * Main application. Allows deploying as a war and logs instance data when deployed in Cloud Foundry
  *
  * @author Patrick Ehlert
- * Created on 22 Jul-2020
+ * Created on 22 Jul 2020
  */
 @SpringBootApplication
 public class RecommendApplication extends SpringBootServletInitializer {

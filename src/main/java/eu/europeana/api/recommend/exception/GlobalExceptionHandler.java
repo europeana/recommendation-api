@@ -2,8 +2,14 @@ package eu.europeana.api.recommend.exception;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+import java.io.IOException;
 
 /**
  * Global exception handler that catches all errors and logs the interesting ones
@@ -28,4 +34,30 @@ public class GlobalExceptionHandler {
         }
         throw e;
     }
+
+    /**
+     * Make sure we return 401 instead of 400 when there's no authorization header
+     */
+    @ExceptionHandler
+    public void handleMissingAuthHeader(MissingRequestHeaderException e, HttpServletResponse response) throws IOException {
+        if ("Authorization".equalsIgnoreCase(e.getHeaderName())) {
+            response.sendError(HttpStatus.UNAUTHORIZED.value());
+        } else {
+            response.sendError(HttpStatus.BAD_REQUEST.value());
+        }
+    }
+
+    /**
+     * Make sure we return 400 instead of 500 when input validation fails
+     * @param e
+     * @param response
+     * @throws IOException
+     */
+    @ExceptionHandler
+    public void handleMissingAuthHeader(ConstraintViolationException e, HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.BAD_REQUEST.value());
+    }
+
+
+
 }

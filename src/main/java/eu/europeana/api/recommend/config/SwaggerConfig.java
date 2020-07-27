@@ -17,7 +17,7 @@ import java.util.Collections;
  * Note that this only works when deployed as a war
  *
  * @author Patrick Ehlert
- * Created on 22 Jul-2020
+ * Created on 22 Jul 2020
  */
 @Configuration
 @EnableSwagger2WebMvc
