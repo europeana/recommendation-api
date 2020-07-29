@@ -30,7 +30,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RecommendException.class)
     public void handleBaseException(RecommendException e) throws RecommendException {
         if (e.doLog()) {
-            LOG.error("Caught exception", e);
+            if (e.logStacktrace()) {
+                LOG.error("Caught exception", e);
+            } else {
+                LOG.error("Caught exception: "+ e.getMessage());
+            }
         }
         throw e;
     }
@@ -41,11 +45,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public void handleMissingAuthHeader(MissingRequestHeaderException e, HttpServletResponse response) throws IOException {
         if ("Authorization".equalsIgnoreCase(e.getHeaderName())) {
-            response.sendError(HttpStatus.UNAUTHORIZED.value());
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
         } else {
-            response.sendError(HttpStatus.BAD_REQUEST.value());
+            response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
+
+    // TODO figure out why message is empty?
 
     /**
      * Make sure we return 400 instead of 500 when input validation fails
@@ -54,8 +60,8 @@ public class GlobalExceptionHandler {
      * @throws IOException
      */
     @ExceptionHandler
-    public void handleMissingAuthHeader(ConstraintViolationException e, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.BAD_REQUEST.value());
+    public void handleInputValidationError(ConstraintViolationException e, HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 
 

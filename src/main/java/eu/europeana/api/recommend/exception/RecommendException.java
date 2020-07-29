@@ -23,4 +23,11 @@ public class RecommendException extends Exception {
         return true; // default we log all exceptions
     }
 
+    /**
+     * @return boolean indicating whether we should include the stacktrace in the logs (if doLog is enabled)
+     */
+    public boolean logStacktrace() {
+        return true;
+    }
+
 }
