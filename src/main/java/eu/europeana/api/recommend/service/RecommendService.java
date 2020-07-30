@@ -51,8 +51,8 @@ public class RecommendService {
         // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
         if (apiKey.contains("_")) {
             LOG.warn("Unrecognized apikey, replacing with known key...");
+            apiKey = dummyApiKey;
         }
-        apiKey = dummyApiKey;
         return getSearchApiResponse(recommendedIds, pageSize, apiKey);
     }
 
@@ -66,9 +66,8 @@ public class RecommendService {
         // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
         if (apiKey.contains("_")) {
             LOG.warn("Unrecognized apikey, replacing with known key...");
+            apiKey = dummyApiKey;
         }
-        apiKey = dummyApiKey;
-
         return getSearchApiResponse(recommendedIds, pageSize, apiKey);
     }
 
