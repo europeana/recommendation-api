@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import eu.europeana.api.recommend.exception.InvalidTokenException;
+import io.micrometer.core.instrument.util.StringUtils;
 
 import java.util.Locale;
 
@@ -35,7 +36,7 @@ public class TokenUtils {
         try {
             DecodedJWT jwt = JWT.decode(tkn);
             String result= jwt.getClaim(API_KEY_CLAIM).asString();
-            if (result == null || result.trim().length() == 0) {
+            if (StringUtils.isBlank(result)) {
                 throw new InvalidTokenException("Token does not contain '" +API_KEY_CLAIM + "' field");
             }
             return result;

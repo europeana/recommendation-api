@@ -45,9 +45,7 @@ public class RecommendService {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?bucket=").append(setId)
                 .append("&size=").append(pageSize);
-        //String[] recs = getRecommendations(s.toString(), token).block();
-        // TODO get recommendations from engine (replace hard-coded ids)
-        String[] recommendedIds = new String[]{"/2032004/10877", "/92092/BibliographicResource_1000086018920"};
+        String[] recommendedIds = getRecommendations(s.toString(), token).block();
 
         String apiKey = TokenUtils.getApiKey(token);
         // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
@@ -62,9 +60,7 @@ public class RecommendService {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?item=").append(recordId)
                 .append("&size=").append(pageSize);
-        //String[] recommendedIds =  getRecommendations(s.toString(), token).block();
-        // TODO get recommendations from engine (replace hard-coded ids)
-        String[] recommendedIds = new String[]{recordId};
+        String[] recommendedIds =  getRecommendations(s.toString(), token).block();
 
         String apiKey = TokenUtils.getApiKey(token);
         // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
@@ -106,7 +102,7 @@ public class RecommendService {
      * <pre>query=europeana_id:("/x1/y1" OR "/x2/y2 OR "/x3/y3")&pageSize=3&profile=minimal&wskey=[wskey]</pre>
      */
     private String generateSearchQuery(String[] recordIds, int maxResults, String wskey) {
-        StringBuilder s = new StringBuilder("?query=");
+        StringBuilder s = new StringBuilder(50).append("?query=");
         for  (int i = 0; i < maxResults && i < recordIds.length; i++) {
             if (i > 0) {
                 s.append(" OR ");
