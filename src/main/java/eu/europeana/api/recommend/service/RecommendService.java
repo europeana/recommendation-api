@@ -46,6 +46,12 @@ public class RecommendService {
                 .append("?bucket=").append(setId)
                 .append("&size=").append(pageSize);
         String[] recommendedIds = getRecommendations(s.toString(), token).block();
+        if (recommendedIds == null || recommendedIds.length == 0) {
+            LOG.warn("No recommended records for set {}", setId);
+            return null;
+        } else {
+            LOG.debug("Recommend engine returned {} items for set {}", recommendedIds.length, setId);
+        }
 
         String apiKey = TokenUtils.getApiKey(token);
         // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
@@ -61,6 +67,12 @@ public class RecommendService {
                 .append("?item=").append(recordId)
                 .append("&size=").append(pageSize);
         String[] recommendedIds =  getRecommendations(s.toString(), token).block();
+        if (recommendedIds == null || recommendedIds.length == 0) {
+            LOG.warn("No recommended records for record {}", recordId);
+            return null;
+        } else {
+            LOG.debug("Recommend engine returned {} items for record {}", recommendedIds.length, recordId);
+        }
 
         String apiKey = TokenUtils.getApiKey(token);
         // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
@@ -84,10 +96,6 @@ public class RecommendService {
      * We use reactive (non-blocking) WebClient to retrieve data from Search API
      */
     private Mono<Object> getSearchApiResponse(String[] recordIds, int maxResults, String wskey) {
-        if (recordIds == null || recordIds.length == 0) {
-            LOG.error("No recommended records");
-            return null;
-        }
         String query = generateSearchQuery(recordIds, maxResults, wskey);
         return searchApiClient.get()
                 .uri(query)
