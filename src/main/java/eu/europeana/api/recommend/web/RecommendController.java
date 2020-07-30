@@ -1,6 +1,8 @@
 package eu.europeana.api.recommend.web;
 
+import eu.europeana.api.recommend.exception.RecommendException;
 import eu.europeana.api.recommend.service.RecommendService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +46,8 @@ public class RecommendController {
             @RequestParam (required = false, defaultValue = DEFAULT_PAGE_SIZE)
                 @Min(value = 1, message = INCORRECT_PAGE_SIZE)
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
-            @RequestHeader(value = "Authorization") String authorization) {
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization)
+            throws RecommendException {
 
         Mono result = recommendService.getRecommendationsForSet(setId, pageSize, authorization);
 
@@ -65,7 +68,8 @@ public class RecommendController {
             @RequestParam (required = false, defaultValue = DEFAULT_PAGE_SIZE)
                 @Min(value = 1, message = INCORRECT_PAGE_SIZE)
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
-            @RequestHeader(value = "Authorization") String authorization) {
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization)
+            throws RecommendException {
 
         String recordId = "/" + datasetId + "/" + localId;
         Mono result = recommendService.getRecommendationsForRecord(recordId, pageSize, authorization);

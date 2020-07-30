@@ -1,10 +1,10 @@
 package eu.europeana.api.recommend.config;
 
-import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -31,7 +31,7 @@ public class WebClients {
     public WebClient getSearchApiClient() {
         return WebClient.builder()
                 .baseUrl(config.getSearchApiEndpoint())
-                .defaultHeader(HttpHeaders.USER_AGENT, buildInfo.getAppName() + " v" + buildInfo.getAppVersion())
+                .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
                 .filter(logRequest())
                 .build();
     }
@@ -40,9 +40,13 @@ public class WebClients {
     public WebClient getRecommendEngineClient() {
         return WebClient.builder()
                 .baseUrl(config.getREngineHost())
-                .defaultHeader(HttpHeaders.USER_AGENT, buildInfo.getAppName() + " v" + buildInfo.getAppVersion())
+                .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
                 .filter(logRequest())
                 .build();
+    }
+
+    private String generateUserAgentName() {
+        return buildInfo.getAppName() + " v" + buildInfo.getAppVersion();
     }
 
     private ExchangeFilterFunction logRequest() {
