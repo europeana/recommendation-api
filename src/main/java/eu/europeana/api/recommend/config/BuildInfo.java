@@ -16,7 +16,7 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:build.properties")
 public class BuildInfo {
 
-    @Value("${info.app.name:unknown}")
+    @Value("${info.app.name:Recommend API}")
     private String appName;
 
     @Value("${info.app.version:unknown}")

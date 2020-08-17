@@ -3,6 +3,7 @@ package eu.europeana.api.recommend.exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europeana.api.recommend.config.RecommendSettings;
 import eu.europeana.api.recommend.model.SearchAPIError;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
     private static final ObjectMapper JSON_ERROR_TO_OBJECT = new ObjectMapper();
     static {
         JSON_ERROR_TO_OBJECT.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
+
+    private RecommendSettings config;
+
+    public GlobalExceptionHandler(RecommendSettings config) {
+        this.config = config;
     }
 
     /**
@@ -81,22 +88,27 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(WebClientResponseException.class)
     public void handleWebClientResponseException(WebClientResponseException ex, HttpServletResponse response) throws IOException {
-        String errorMsg = ex.getResponseBodyAsString();
+        String errorMsg = ex.getMessage();
         LOG.error("Error from backend: {} - {}, {}", ex.getRawStatusCode(), ex.getStatusText(), errorMsg);
 
-        // TODO Recommendation engine may not return json, check if this works for error message they send.
-        try {
-            SearchAPIError sApiError = JSON_ERROR_TO_OBJECT.readValue(errorMsg, SearchAPIError.class);
-            errorMsg = sApiError.getError();
-        } catch (JsonProcessingException e) {
-            LOG.warn("Cannot deserialize error message from backend system: {}", errorMsg, e);
+        // Check if error was from Search API or other system
+        if (ex.getRequest().getURI().toString().startsWith(config.getSearchApiEndpoint())) {
+            // Decode Search API message
+            try {
+                SearchAPIError sApiError = JSON_ERROR_TO_OBJECT.readValue(errorMsg, SearchAPIError.class);
+                errorMsg = sApiError.getError();
+            } catch (JsonProcessingException e) {
+                LOG.warn("Cannot deserialize error message from backend system: {}", errorMsg, e);
+            }
         }
 
-        // we simply relay all other error messages
+        // For all 500 responses we return a 502 ourselves
         if (ex.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
             response.sendError(HttpStatus.BAD_GATEWAY.value(), errorMsg);
+        } else {
+            // For all other error responses we simply relay the status code and errormessage
+            response.sendError(ex.getRawStatusCode(), errorMsg);
         }
-        response.sendError(ex.getRawStatusCode(), errorMsg);
     }
 
 }
