@@ -68,8 +68,6 @@ public class GlobalExceptionHandler {
         }
     }
 
-    // TODO figure out why message is empty?
-
     /**
      * Make sure we return 400 instead of 500 when input validation fails
      * @param e

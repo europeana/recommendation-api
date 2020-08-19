@@ -1,3 +1,8 @@
 # Settings for local testing
 server.port: 8085
 
+server:
+  error:
+    include-message: always
+    include-exception: false
+    include-stacktrace: on_param
