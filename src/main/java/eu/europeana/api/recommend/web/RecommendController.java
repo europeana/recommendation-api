@@ -1,7 +1,9 @@
 package eu.europeana.api.recommend.web;
 
 import eu.europeana.api.recommend.exception.RecommendException;
+import eu.europeana.api.recommend.model.SearchAPIEmptyResponse;
 import eu.europeana.api.recommend.service.RecommendService;
+import eu.europeana.api.recommend.service.TokenUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,8 +44,8 @@ public class RecommendController {
 
     @GetMapping(value = {"/set/{setId}.json", "/set/{setId}"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity recommendSet(
-            @PathVariable @Pattern(regexp = SET_ID_REGEX, message = INVALID_SETID_MESSAGE) String setId,
-            @RequestParam (required = false, defaultValue = DEFAULT_PAGE_SIZE)
+            @PathVariable (value = "setId") @Pattern(regexp = SET_ID_REGEX, message = INVALID_SETID_MESSAGE) String setId,
+            @RequestParam (value = "pageSize" , required = false, defaultValue = DEFAULT_PAGE_SIZE)
                 @Min(value = 1, message = INCORRECT_PAGE_SIZE)
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization)
@@ -51,9 +53,8 @@ public class RecommendController {
 
         Mono result = recommendService.getRecommendationsForSet(setId, pageSize, authorization);
 
-        // TODO how to respond if we get no recommendations?
         if (result == null) {
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            return new ResponseEntity(new SearchAPIEmptyResponse(TokenUtils.getApiKey(authorization)), HttpStatus.OK);
         }
 
         return new ResponseEntity(result.block(), HttpStatus.OK);
@@ -63,9 +64,9 @@ public class RecommendController {
     @GetMapping(value = {"/record/{datasetId}/{localId}.json", "/record/{datasetId}/{localId}"},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity recommendRecord(
-            @PathVariable @Pattern(regexp = EUROPEANA_ID_REGEX, message = INVALID_RECORDID_MESSAGE) String datasetId,
-            @PathVariable @Pattern(regexp = EUROPEANA_ID_REGEX, message = INVALID_RECORDID_MESSAGE) String localId,
-            @RequestParam (required = false, defaultValue = DEFAULT_PAGE_SIZE)
+            @PathVariable (value = "datasetId") @Pattern(regexp = EUROPEANA_ID_REGEX, message = INVALID_RECORDID_MESSAGE) String datasetId,
+            @PathVariable (value = "localId")@Pattern(regexp = EUROPEANA_ID_REGEX, message = INVALID_RECORDID_MESSAGE) String localId,
+            @RequestParam (value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
                 @Min(value = 1, message = INCORRECT_PAGE_SIZE)
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization)
@@ -74,9 +75,8 @@ public class RecommendController {
         String recordId = "/" + datasetId + "/" + localId;
         Mono result = recommendService.getRecommendationsForRecord(recordId, pageSize, authorization);
 
-        // TODO how to respond if we get no recommendations?
         if (result == null) {
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            return new ResponseEntity(new SearchAPIEmptyResponse(TokenUtils.getApiKey(authorization)), HttpStatus.OK);
         }
 
         return new ResponseEntity(result.block(), HttpStatus.OK);
