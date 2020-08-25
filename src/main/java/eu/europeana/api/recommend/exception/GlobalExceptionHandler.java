@@ -102,11 +102,17 @@ public class GlobalExceptionHandler {
 
         // For all 500 responses we return a 502 ourselves
         if (ex.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
-            response.sendError(HttpStatus.BAD_GATEWAY.value(), errorMsg);
+            response.sendError(HttpStatus.BAD_GATEWAY.value(), filterOutSensitiveInformation(errorMsg));
         } else {
             // For all other error responses we simply relay the status code and errormessage
-            response.sendError(ex.getRawStatusCode(), errorMsg);
+            response.sendError(ex.getRawStatusCode(), filterOutSensitiveInformation(errorMsg));
         }
+    }
+
+    private String filterOutSensitiveInformation(String originalMessage) {
+        String result = originalMessage.replaceAll(config.getREngineHost(), "<ENGINE_HOST>");
+        result = result.replaceAll(config.getSearchApiEndpoint(), "<SEARCH_API_ENDPOINT>");
+        return result;
     }
 
 }
