@@ -9,10 +9,15 @@
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36} - %msg%n" />
         </Console>
     </Appenders>
+
+
     <Loggers>
         <Root level="INFO">
             <AppenderRef ref="Console"/>
         </Root>
-        <logger name="eu.europeana.api.recommend.service.RecommendService" level="DEBUG"/>
+        <Logger name="eu.europeana.api.recommend.service.RecommendService" level="DEBUG"/>
+
+        <!-- Set to DEBUG to log all requests to backend systems -->
+        <Logger name="eu.europeana.api.recommend.config.WebClients" level="DEBUG"/>
     </Loggers>
 </Configuration>

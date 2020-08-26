@@ -51,7 +51,7 @@ public class WebClients {
 
     private ExchangeFilterFunction logRequest() {
         return (clientRequest, next) -> {
-            LOG.info("Request: {} {}", clientRequest.method(), clientRequest.url());
+            LOG.debug("Request: {} {}", clientRequest.method(), clientRequest.url());
             return next.exchange(clientRequest);
         };
     }
