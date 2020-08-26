@@ -2,8 +2,12 @@ package eu.europeana.api.recommend.web;
 
 import eu.europeana.api.recommend.exception.NoCredentialsException;
 import eu.europeana.api.recommend.exception.RecommendException;
+import eu.europeana.api.recommend.model.SearchAPIEmptyResponse;
 import eu.europeana.api.recommend.service.RecommendService;
+import eu.europeana.api.recommend.service.TokenUtils;
 import io.micrometer.core.instrument.util.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +30,8 @@ import javax.validation.constraints.Pattern;
 @RequestMapping("/recommend")
 @Validated
 public class RecommendController {
+
+    private static final Logger LOG = LogManager.getLogger(RecommendController.class);
 
     private static final String SET_ID_REGEX = "^[0-9]*$";
     private static final String EUROPEANA_ID_REGEX = "^[a-zA-Z0-9_]*$";
@@ -53,22 +59,16 @@ public class RecommendController {
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
-            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization)
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
+        String apikey = checkCredentials(authToken, wskey);
 
-        if (StringUtils.isBlank(wskey) && StringUtils.isBlank(authorization)) {
-            throw new NoCredentialsException();
-        }
-
-        Mono result = recommendService.getRecommendationsForSet(setId, pageSize, authorization, wskey);
-
-        // TODO how to respond if we get no recommendations?
+        Mono result = recommendService.getRecommendationsForSet(setId, pageSize, authToken, apikey);
         if (result == null) {
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            return new ResponseEntity(new SearchAPIEmptyResponse(apikey), HttpStatus.OK);
         }
 
         return new ResponseEntity(result.block(), HttpStatus.OK);
-
     }
 
     @GetMapping(value = {"/record/{datasetId}/{localId}.json", "/record/{datasetId}/{localId}"},
@@ -78,27 +78,42 @@ public class RecommendController {
                 @Pattern(regexp = EUROPEANA_ID_REGEX, message = INVALID_RECORDID_MESSAGE) String datasetId,
             @PathVariable(value = "localId")
                 @Pattern(regexp = EUROPEANA_ID_REGEX, message = INVALID_RECORDID_MESSAGE) String localId,
-            @RequestParam (required = false, defaultValue = DEFAULT_PAGE_SIZE)
+            @RequestParam (value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
                 @Min(value = 1, message = INCORRECT_PAGE_SIZE)
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
-            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization)
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-
-        if (StringUtils.isBlank(wskey) && StringUtils.isBlank(authorization)) {
-            throw new NoCredentialsException();
-        }
+       String apikey = checkCredentials(authToken, wskey);
 
         String recordId = "/" + datasetId + "/" + localId;
-        Mono result = recommendService.getRecommendationsForRecord(recordId, pageSize, authorization, wskey);
-
-        // TODO how to respond if we get no recommendations?
+        Mono result = recommendService.getRecommendationsForRecord(recordId, pageSize, authToken, apikey);
         if (result == null) {
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            return new ResponseEntity(new SearchAPIEmptyResponse(apikey), HttpStatus.OK);
         }
 
         return new ResponseEntity(result.block(), HttpStatus.OK);
 
+    }
+
+    /**
+     * Check if we have a token and/or API key. If not we throw an error, otherwise we'll return the API key that we'll
+     * use for querying Search API
+     */
+    private String checkCredentials(String authToken, String wskey) throws RecommendException {
+        if (StringUtils.isBlank(wskey) && StringUtils.isBlank(authToken)) {
+            throw new NoCredentialsException();
+        }
+        // if we have a token, we use the API key embedded in that
+        String apikey;
+        if (StringUtils.isNotBlank(authToken)) {
+            apikey = TokenUtils.getApiKey(authToken);
+            LOG.debug("Using API key {} from token", apikey);
+        } else {
+            apikey = wskey;
+            LOG.debug("Using received API key {}", apikey);
+        }
+        return apikey;
     }
 }

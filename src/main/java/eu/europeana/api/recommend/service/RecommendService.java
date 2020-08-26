@@ -2,8 +2,6 @@ package eu.europeana.api.recommend.service;
 
 import eu.europeana.api.recommend.config.RecommendSettings;
 import eu.europeana.api.recommend.config.WebClients;
-import eu.europeana.api.recommend.exception.InvalidTokenException;
-import eu.europeana.api.recommend.exception.RecommendException;
 import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +35,7 @@ public class RecommendService {
         this.rengineClient = webClients.getRecommendEngineClient();
     }
 
-    public Mono getRecommendationsForSet(String setId, int pageSize, String token, String apikey) throws RecommendException {
+    public Mono getRecommendationsForSet(String setId, int pageSize, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?bucket=").append(setId)
                 .append("&size=").append(pageSize);
@@ -49,10 +47,10 @@ public class RecommendService {
             LOG.debug("Recommend engine returned {} items for set {}", recommendedIds.length, setId);
         }
 
-        return getSearchApiResponse(recommendedIds, pageSize, getApiKey(token, apikey));
+        return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
-    public Mono getRecommendationsForRecord(String recordId, int pageSize, String token, String apikey) throws RecommendException {
+    public Mono getRecommendationsForRecord(String recordId, int pageSize, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?item=").append(recordId)
                 .append("&size=").append(pageSize);
@@ -64,7 +62,7 @@ public class RecommendService {
             LOG.debug("Recommend engine returned {} items for record {}", recommendedIds.length, recordId);
         }
 
-        return getSearchApiResponse(recommendedIds, pageSize, getApiKey(token, apikey));
+        return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
     private Mono<String[]> getRecommendations(String recommendQuery, String token, String apikey) {
@@ -78,20 +76,6 @@ public class RecommendService {
                 .header(HttpHeaders.AUTHORIZATION, authValue)
                 .retrieve()
                 .bodyToMono(String[].class);
-    }
-
-    /**
-     * If we have a token, we return the API key contained in the token, otherwise we use the provided wskey
-     */
-    private String getApiKey(String token, String apikey) throws InvalidTokenException {
-        String result = apikey;
-        if (StringUtils.isNotBlank(token)) {
-            result = TokenUtils.getApiKey(token);
-            LOG.debug("Using API key {} from token to query Search API", result);
-        } else {
-            LOG.debug("Using received API key {} to query Search API", result);
-        }
-        return result;
     }
 
     /**

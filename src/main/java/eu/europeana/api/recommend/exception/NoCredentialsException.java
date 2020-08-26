@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 public class NoCredentialsException extends RecommendException {
 
+    public static final String ERROR_MSG = "No credentials provided";
+
     public NoCredentialsException() {
-        super("No credentials provided");
+        super(ERROR_MSG);
     }
 
     @Override
