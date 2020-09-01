@@ -2,10 +2,9 @@ package eu.europeana.api.recommend.service;
 
 import eu.europeana.api.recommend.config.RecommendSettings;
 import eu.europeana.api.recommend.config.WebClients;
-import eu.europeana.api.recommend.exception.RecommendException;
+import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -26,11 +25,6 @@ public class RecommendService {
 
     private static final String SOLR_ID_FIELD = "europeana_id";
 
-    @Value("${tmp.dummy.apikey}")
-    private String dummyApiKey;
-    // TODO until we have a valid token for testing we use an API key provided in the property files + we always return
-    // the same 2 records as recommendation for a set, plus the same record as recommendation for a record
-
     private RecommendSettings config;
     private WebClient searchApiClient;
     private WebClient rengineClient;
@@ -41,11 +35,11 @@ public class RecommendService {
         this.rengineClient = webClients.getRecommendEngineClient();
     }
 
-    public Mono getRecommendationsForSet(String setId, int pageSize, String token) throws RecommendException {
+    public Mono getRecommendationsForSet(String setId, int pageSize, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?bucket=").append(setId)
                 .append("&size=").append(pageSize);
-        String[] recommendedIds = getRecommendations(s.toString(), token).block();
+        String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
         if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for set {}", setId);
             return null;
@@ -53,20 +47,14 @@ public class RecommendService {
             LOG.debug("Recommend engine returned {} items for set {}", recommendedIds.length, setId);
         }
 
-        String apiKey = TokenUtils.getApiKey(token);
-        // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
-        if (apiKey.contains("_")) {
-            LOG.warn("Unrecognized apikey, replacing with known key...");
-            apiKey = dummyApiKey;
-        }
-        return getSearchApiResponse(recommendedIds, pageSize, apiKey);
+        return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
-    public Mono getRecommendationsForRecord(String recordId, int pageSize, String token) throws RecommendException {
+    public Mono getRecommendationsForRecord(String recordId, int pageSize, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?item=").append(recordId)
                 .append("&size=").append(pageSize);
-        String[] recommendedIds =  getRecommendations(s.toString(), token).block();
+        String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
         if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
             return null;
@@ -74,20 +62,18 @@ public class RecommendService {
             LOG.debug("Recommend engine returned {} items for record {}", recommendedIds.length, recordId);
         }
 
-        String apiKey = TokenUtils.getApiKey(token);
-        // TODO most tokens we use have an API key unknown to Search API, so in that case we replace (temporarily)
-        if (apiKey.contains("_")) {
-            LOG.warn("Unrecognized apikey, replacing with known key...");
-            apiKey = dummyApiKey;
-        }
-        return getSearchApiResponse(recommendedIds, pageSize, apiKey);
+        return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
-    private Mono<String[]> getRecommendations(String recommendQuery, String token) {
+    private Mono<String[]> getRecommendations(String recommendQuery, String token, String apikey) {
+        String authValue = token;
+        if (StringUtils.isBlank(authValue)) {
+            authValue = "APIKEY " + apikey;
+        }
         return rengineClient.get()
                 .uri(recommendQuery)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .header(HttpHeaders.AUTHORIZATION, token)
+                .header(HttpHeaders.AUTHORIZATION, authValue)
                 .retrieve()
                 .bodyToMono(String[].class);
     }

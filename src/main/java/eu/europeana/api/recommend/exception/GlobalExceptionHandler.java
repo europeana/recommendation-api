@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api.recommend.config.RecommendSettings;
 import eu.europeana.api.recommend.model.SearchAPIError;
+import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -86,18 +87,26 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(WebClientResponseException.class)
     public void handleWebClientResponseException(WebClientResponseException ex, HttpServletResponse response) throws IOException {
-        String errorMsg = ex.getMessage();
-        LOG.error("Error from backend: {} - {}, {}", ex.getRawStatusCode(), ex.getStatusText(), errorMsg);
+        LOG.error("Error from backend: {} {} (Message = {})", ex.getRawStatusCode(), ex.getStatusText(), ex.getMessage());
 
+        String errorMsg;
         // Check if error was from Search API or other system
         if (ex.getRequest().getURI().toString().startsWith(config.getSearchApiEndpoint())) {
-            // Decode Search API message
-            try {
-                SearchAPIError sApiError = JSON_ERROR_TO_OBJECT.readValue(errorMsg, SearchAPIError.class);
-                errorMsg = sApiError.getError();
-            } catch (JsonProcessingException e) {
-                LOG.warn("Cannot deserialize error message from backend system: {}", errorMsg, e);
+            errorMsg  = "Error from backend API: ";
+            // Decode Search API message if available;
+            if (StringUtils.isNotBlank(ex.getResponseBodyAsString())) {
+                try {
+                    SearchAPIError searchApiError = JSON_ERROR_TO_OBJECT.readValue(ex.getResponseBodyAsString(), SearchAPIError.class);
+                    errorMsg = errorMsg + searchApiError.getError();
+                } catch (JsonProcessingException e) {
+                    LOG.warn("Cannot deserialize error response from Search API: {}", ex.getResponseBodyAsString(), e);
+                    errorMsg = errorMsg + ex.getMessage();
+                }
+            } else {
+                errorMsg = errorMsg + ex.getMessage();
             }
+        } else {
+            errorMsg = "Error from backend engine: " + ex.getMessage();
         }
 
         // For all 500 responses we return a 502 ourselves
