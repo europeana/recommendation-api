@@ -35,7 +35,7 @@ public class RecommendController {
 
     private static final String SET_ID_REGEX = "^[0-9]*$";
     private static final String EUROPEANA_ID_REGEX = "^[a-zA-Z0-9_]*$";
-    private static final String APIKEY_REGEX = "^[a-zA-Z0-9]*$";
+    private static final String APIKEY_REGEX = "^[a-zA-Z0-9_]*$";
     private static final String DEFAULT_PAGE_SIZE = "10";
     private static final int MAX_PAGE_SIZE = 50;
 
