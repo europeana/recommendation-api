@@ -16,16 +16,16 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:build.properties")
 public class BuildInfo {
 
-    @Value("${info.app.name:Recommend API}")
+    @Value("${info.app.name}")
     private String appName;
 
-    @Value("${info.app.version:unknown}")
+    @Value("${info.app.version}")
     private String appVersion;
 
-    @Value("${info.app.description:unknown}")
+    @Value("${info.app.description}")
     private String appDescription;
 
-    @Value("${info.build.number:unknown}")
+    @Value("${info.build.number}")
     private String buildNumber;
 
     public String getAppName() {
@@ -43,4 +43,5 @@ public class BuildInfo {
     public String getBuildNumber() {
         return buildNumber;
     }
+
 }
