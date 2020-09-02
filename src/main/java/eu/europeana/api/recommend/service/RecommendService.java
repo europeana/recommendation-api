@@ -102,7 +102,7 @@ public class RecommendService {
             }
             s.append(SOLR_ID_FIELD).append(":").append("\"").append(recordIds[i]).append("\"");
         }
-        s.append("&pageSize=").append(recordIds.length)
+        s.append("&rows=").append(recordIds.length)
                 .append("&profile=minimal")
                 .append("&wskey=").append(wskey);
         return s.toString();
