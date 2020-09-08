@@ -2,6 +2,8 @@
 
 Spring-Boot2 web application for recommending Cultural Heritage Objects (CHOs) or sets of CHOs (see also 
 [Europeana's Set API](https://github.com/europeana/set-api))
+The application is basically a wrapper around an external recommendation engine and uses Search API to
+return answers in the same format as used by Search API 
 
 ## Prerequisites
  * Java 11
@@ -10,6 +12,11 @@ Spring-Boot2 web application for recommending Cultural Heritage Objects (CHOs) o
  
  <sup>* A Maven installation is recommended, but you could use the accompanying `mvnw` (Linux) or `mvnw.cmd` (Windows) 
   files instead.
+  
+ ## Configure
+ Specify a host name for:
+ <li>Recommendation engine</li>
+ <li>Search API</li> 
   
  ## Run
  

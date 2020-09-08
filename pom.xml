@@ -11,7 +11,7 @@
 
     <groupId>eu.europeana.api</groupId>
     <artifactId>recommend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>recommendation-api</name>
