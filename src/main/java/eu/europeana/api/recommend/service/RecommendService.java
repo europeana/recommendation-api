@@ -40,7 +40,7 @@ public class RecommendService {
                 .append("?bucket=").append(setId)
                 .append("&size=").append(pageSize);
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
-        if (recommendedIds == null || recommendedIds.length == 0) {
+        if (recommendedIds.length == 0) {
             LOG.warn("No recommended records for set {}", setId);
             return null;
         } else {
@@ -55,7 +55,7 @@ public class RecommendService {
                 .append("?item=").append(recordId)
                 .append("&size=").append(pageSize);
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
-        if (recommendedIds == null || recommendedIds.length == 0) {
+        if (recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
             return null;
         } else {

@@ -25,6 +25,8 @@ public class RecommendSettings {
 
     private static final Logger LOG = LogManager.getLogger(RecommendSettings.class);
 
+    @Value("${search.api.host}")
+    private String searchApiHost;
     @Value("${search.api.endpoint}")
     private String searchApiEndpoint;
     @Value("${recommend.engine.host}")
@@ -35,6 +37,16 @@ public class RecommendSettings {
     private String rengineEventsPath;
 
 
+    /**
+     * @return the host name part of the configured Search API
+     */
+    public String getSearchApiHost() {
+        return searchApiHost;
+    }
+
+    /**
+     * @return the full endpoint (host name + path) of the configured Search API search endpoint
+     */
     public String getSearchApiEndpoint() {
         return searchApiEndpoint;
     }

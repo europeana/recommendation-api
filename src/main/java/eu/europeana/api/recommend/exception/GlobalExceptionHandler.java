@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api.recommend.config.RecommendSettings;
 import eu.europeana.api.recommend.model.SearchAPIError;
+import io.micrometer.core.instrument.util.StringEscapeUtils;
 import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,9 +64,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public void handleMissingAuthHeader(MissingRequestHeaderException e, HttpServletResponse response) throws IOException {
         if ("Authorization".equalsIgnoreCase(e.getHeaderName())) {
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
+            response.sendError(HttpStatus.UNAUTHORIZED.value(),StringEscapeUtils.escapeJson(e.getMessage()));
         } else {
-            response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+            response.sendError(HttpStatus.BAD_REQUEST.value(), StringEscapeUtils.escapeJson(e.getMessage()));
         }
     }
 
@@ -77,7 +78,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler
     public void handleInputValidationError(ConstraintViolationException e, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        response.sendError(HttpStatus.BAD_REQUEST.value(), StringEscapeUtils.escapeJson(e.getMessage()));
     }
 
     /**
@@ -91,9 +92,9 @@ public class GlobalExceptionHandler {
 
         String errorMsg;
         // Check if error was from Search API or other system
-        if (ex.getRequest().getURI().toString().startsWith(config.getSearchApiEndpoint())) {
+        if (isRequestFromSearchAPI(ex)) {
             errorMsg  = "Error from backend API: ";
-            // Decode Search API message if available;
+            // Decode Search API message if available
             if (StringUtils.isNotBlank(ex.getResponseBodyAsString())) {
                 try {
                     SearchAPIError searchApiError = JSON_ERROR_TO_OBJECT.readValue(ex.getResponseBodyAsString(), SearchAPIError.class);
@@ -111,11 +112,17 @@ public class GlobalExceptionHandler {
 
         // For all 500 responses we return a 502 ourselves
         if (ex.getRawStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
-            response.sendError(HttpStatus.BAD_GATEWAY.value(), filterOutSensitiveInformation(errorMsg));
+            response.sendError(HttpStatus.BAD_GATEWAY.value(),
+                    StringEscapeUtils.escapeJson(filterOutSensitiveInformation(errorMsg)));
         } else {
             // For all other error responses we simply relay the status code and errormessage
-            response.sendError(ex.getRawStatusCode(), filterOutSensitiveInformation(errorMsg));
+            response.sendError(ex.getRawStatusCode(),
+                    StringEscapeUtils.escapeJson(filterOutSensitiveInformation(errorMsg)));
         }
+    }
+
+    private boolean isRequestFromSearchAPI(WebClientResponseException ex) {
+        return config.getSearchApiHost().contains(ex.getRequest().getURI().getHost());
     }
 
     private String filterOutSensitiveInformation(String originalMessage) {

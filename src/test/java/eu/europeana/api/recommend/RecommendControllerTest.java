@@ -139,7 +139,7 @@ public class RecommendControllerTest {
         mockMvc.perform(get("/recommend/set/{setId}", "2")
                 .header(AUTH_HEADER, TOKEN)
                 .header(HttpHeaders.ORIGIN, "https://test.com"))
-                .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(status().isOk())
                 .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
 
@@ -147,7 +147,7 @@ public class RecommendControllerTest {
         mockMvc.perform(get("/recommend/set/{setId}", "2-2")
                 .header(AUTH_HEADER, TOKEN)
                 .header(HttpHeaders.ORIGIN, "https://test.com"))
-                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(status().isBadRequest())
                 .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
     }
