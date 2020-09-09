@@ -1,9 +1,9 @@
 # Europeana Recommendation API
 
 Spring-Boot2 web application for recommending Cultural Heritage Objects (CHOs) or sets of CHOs (see also 
-[Europeana's Set API](https://github.com/europeana/set-api))
+[Europeana's Set API](https://github.com/europeana/set-api)). 
 The application is basically a wrapper around an external recommendation engine and uses Search API to
-return answers in the same format as used by Search API 
+return answers in the same format as used by Search API.
 
 ## Prerequisites
  * Java 11

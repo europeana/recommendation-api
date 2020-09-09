@@ -7,13 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 /**
  * JUnit test for testing the RecommendController class
@@ -126,6 +128,28 @@ public class RecommendControllerTest {
             .andExpect(jsonPath("itemsCount").value(expected.getItemsCount()))
             .andExpect(jsonPath("totalResults").value(expected.getTotalResults()))
             .andExpect(jsonPath("items").isEmpty());
+    }
+
+    /**
+     * Test if CORS works for normal requests and error requests
+     */
+    @Test
+    public void testCORS() throws Exception {
+        // normal (200 response) request
+        mockMvc.perform(get("/recommend/set/{setId}", "2")
+                .header(AUTH_HEADER, TOKEN)
+                .header(HttpHeaders.ORIGIN, "https://test.com"))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
+
+        // error request
+        mockMvc.perform(get("/recommend/set/{setId}", "2-2")
+                .header(AUTH_HEADER, TOKEN)
+                .header(HttpHeaders.ORIGIN, "https://test.com"))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
     }
 
 }
