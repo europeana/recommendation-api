@@ -22,7 +22,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <spring-boot.version>2.3.1.RELEASE</spring-boot.version>
+        <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
         <!-- TODO for some reason the Swagger /api-docs endpoint is not available for newer Swagger versions -->
         <swagger.version>2.9.2</swagger.version>
     </properties>
