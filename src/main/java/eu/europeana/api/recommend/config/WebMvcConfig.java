@@ -1,5 +1,6 @@
 package eu.europeana.api.recommend.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -12,24 +13,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Created on 23 Jul 2020
  */
 @Configuration
-public class WebMvcConfig implements WebMvcConfigurer {
+public class WebMvcConfig {
 
     /**
      * Setup CORS for all requests.
      */
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**").allowedOrigins("*").maxAge(1000);
-    }
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**").maxAge(1000).allowedMethods("GET", "PUT", "POST", "PATCH", "DELETE", "OPTIONS", "HEAD");
+            }
 
-    /**
-     * Enable content negotiation via path extension.
-     */
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        //Note that favorPathExtension() is deprecated and will be phased out by Spring. This means that when we upgrade
-        // Spring later it may stop working (see also https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-ann-requestmapping-suffix-pattern-match
-        configurer.favorPathExtension(true);
+            /**
+             * Enable content negotiation via path extension.
+             */
+            @Override
+            public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+                //Note that favorPathExtension() is deprecated and will be phased out by Spring. This means that when we upgrade
+                // Spring later it may stop working (see also https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-ann-requestmapping-suffix-pattern-match
+                configurer.favorPathExtension(true);
+            }
+        };
     }
-
 }
