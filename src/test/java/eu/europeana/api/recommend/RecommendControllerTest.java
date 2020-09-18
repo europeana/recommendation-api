@@ -8,14 +8,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * JUnit test for testing the RecommendController class
@@ -134,7 +136,7 @@ public class RecommendControllerTest {
      * Test if CORS works for normal requests and error requests
      */
     @Test
-    public void testCORS() throws Exception {
+    public void testCorsGet() throws Exception {
         // normal (200 response) request
         mockMvc.perform(get("/recommend/set/{setId}", "2")
                 .header(AUTH_HEADER, TOKEN)
@@ -152,4 +154,19 @@ public class RecommendControllerTest {
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
     }
 
+
+    /**
+     * A pre-flight request is an OPTIONS request using three HTTP request headers:
+     * Access-Control-Request-Method, Access-Control-Request-Headers, and the Origin header.
+     */
+    @Test
+    public void testCorsPreFlight() throws Exception {
+       mockMvc.perform(options("/recommend/set/{setId}", "2")
+                .header(HttpHeaders.ORIGIN, "https://test.com")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, HttpHeaders.AUTHORIZATION))
+               .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+               .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")))
+               .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
+    }
 }
