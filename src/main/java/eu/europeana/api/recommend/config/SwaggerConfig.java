@@ -51,19 +51,4 @@ public class SwaggerConfig {
                 new Contact("API team", "https://api.europeana.eu", "api@europeana.eu"),
                 "EUPL 1.2", "https://www.eupl.eu", Collections.emptyList());
     }
-
-    /**
-     * For some reason the default Spring-Boot way of configuring Cors using the CorsFilter in WebMvcConfig class doesn't
-     * work, so we configure it separately for Swagger here (solution copied from https://stackoverflow.com/a/45685909)
-     */
-    @Bean
-    public CorsFilter corsFilterSwagger() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
-        config.setMaxAge(1000L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/v2/api-docs", config);
-        return new CorsFilter(source);
-    }
 }
