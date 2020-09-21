@@ -132,41 +132,5 @@ public class RecommendControllerTest {
             .andExpect(jsonPath("items").isEmpty());
     }
 
-    /**
-     * Test if CORS works for normal requests and error requests
-     */
-    @Test
-    public void testCorsGet() throws Exception {
-        // normal (200 response) request
-        mockMvc.perform(get("/recommend/set/{setId}", "2")
-                .header(AUTH_HEADER, TOKEN)
-                .header(HttpHeaders.ORIGIN, "https://test.com"))
-                .andExpect(status().isOk())
-                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
-                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
 
-        // error request
-        mockMvc.perform(get("/recommend/set/{setId}", "2-2")
-                .header(AUTH_HEADER, TOKEN)
-                .header(HttpHeaders.ORIGIN, "https://test.com"))
-                .andExpect(status().isBadRequest())
-                .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
-                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
-    }
-
-
-    /**
-     * A pre-flight request is an OPTIONS request using three HTTP request headers:
-     * Access-Control-Request-Method, Access-Control-Request-Headers, and the Origin header.
-     */
-    @Test
-    public void testCorsPreFlight() throws Exception {
-       mockMvc.perform(options("/recommend/set/{setId}", "2")
-                .header(HttpHeaders.ORIGIN, "https://test.com")
-                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
-                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, HttpHeaders.AUTHORIZATION))
-               .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
-               .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")))
-               .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
-    }
 }

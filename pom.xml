@@ -22,9 +22,8 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
-        <!-- TODO for some reason the Swagger /api-docs endpoint is not available for newer Swagger versions -->
-        <swagger.version>2.9.2</swagger.version>
+        <spring-boot.version>2.3.3.RELEASE</spring-boot.version>
+        <swagger.version>3.0.0</swagger.version>
     </properties>
 
     <dependencyManagement>
@@ -78,7 +77,7 @@
 
         <dependency>
             <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
+            <artifactId>springfox-boot-starter</artifactId>
             <version>${swagger.version}</version>
             <exclusions>
                 <exclusion>
