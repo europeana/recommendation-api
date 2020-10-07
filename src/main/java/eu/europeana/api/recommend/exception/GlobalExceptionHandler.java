@@ -62,6 +62,7 @@ public class GlobalExceptionHandler {
      * Make sure we return 401 instead of 400 when there's no authorization header
      */
     @ExceptionHandler
+    @SuppressWarnings("findsecbugs:XSS_SERVLET") // we control error message and use StringEscapeUtils so very low risk
     public void handleMissingAuthHeader(MissingRequestHeaderException e, HttpServletResponse response) throws IOException {
         if ("Authorization".equalsIgnoreCase(e.getHeaderName())) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(),StringEscapeUtils.escapeJson(e.getMessage()));
@@ -77,6 +78,7 @@ public class GlobalExceptionHandler {
      * @throws IOException
      */
     @ExceptionHandler
+    @SuppressWarnings("findsecbugs:XSS_SERVLET") // we control error message and use StringEscapeUtils so very low risk
     public void handleInputValidationError(ConstraintViolationException e, HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.BAD_REQUEST.value(), StringEscapeUtils.escapeJson(e.getMessage()));
     }
@@ -87,6 +89,7 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler(WebClientResponseException.class)
+    @SuppressWarnings("findsecbugs:XSS_SERVLET") // we control error message and use StringEscapeUtils so very low risk
     public void handleWebClientResponseException(WebClientResponseException ex, HttpServletResponse response) throws IOException {
         LOG.error("Error from backend: {} {} (Message = {})", ex.getRawStatusCode(), ex.getStatusText(), ex.getMessage());
 

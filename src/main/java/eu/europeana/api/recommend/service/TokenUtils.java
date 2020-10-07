@@ -14,7 +14,7 @@ import java.util.Locale;
  * @author Patrick Ehlert
  * Created on 29 Jul 2020
  */
-public class TokenUtils {
+public final class TokenUtils {
 
     private static final String API_KEY_CLAIM = "azp";
 

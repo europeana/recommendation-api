@@ -28,7 +28,8 @@ public class WebRequestConfig {
             @Override
             public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
                 //Note that favorPathExtension() is deprecated and will be phased out by Spring. This means that when we upgrade
-                // Spring later it may stop working (see also https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-ann-requestmapping-suffix-pattern-match
+                // Spring later it may stop working, see also
+                // https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-ann-requestmapping-suffix-pattern-match
                 configurer.favorPathExtension(true);
             }
         };
