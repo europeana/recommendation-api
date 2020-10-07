@@ -100,7 +100,7 @@ public class RecommendService {
             if (i > 0) {
                 s.append(" OR ");
             }
-            s.append(SOLR_ID_FIELD).append(":\"").append(recordIds[i]).append("\"");
+            s.append(SOLR_ID_FIELD).append(":\"").append(recordIds[i]).append('"');
         }
         s.append("&rows=").append(recordIds.length)
                 .append("&profile=minimal")

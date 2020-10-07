@@ -37,7 +37,7 @@ public class SearchAPIEmptyResponse {
     }
 
     public String[] getItems() {
-        return items;
+        return items.clone();
     }
 
 }
