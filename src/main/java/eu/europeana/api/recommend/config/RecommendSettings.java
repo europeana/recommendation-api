@@ -33,9 +33,6 @@ public class RecommendSettings {
     private String rengineHost;
     @Value("${recommend.engine.recommend.path}")
     private String rengineRecommendPath;
-    @Value("${recommend.engine.events.path}")
-    private String rengineEventsPath;
-
 
     /**
      * @return the host name part of the configured Search API
@@ -57,10 +54,6 @@ public class RecommendSettings {
 
     public String getREngineRecommendPath() {
         return rengineRecommendPath;
-    }
-
-    public String getREngineEventsPath() {
-        return rengineEventsPath;
     }
 
     @PostConstruct
