@@ -125,7 +125,10 @@ public class GlobalExceptionHandler {
     }
 
     private boolean isRequestFromSearchAPI(WebClientResponseException ex) {
-        return config.getSearchApiHost().contains(ex.getRequest().getURI().getHost());
+        if (ex.getRequest() != null) {
+            return config.getSearchApiHost().contains(ex.getRequest().getURI().getHost());
+        }
+        return false;
     }
 
     private String filterOutSensitiveInformation(String originalMessage) {
