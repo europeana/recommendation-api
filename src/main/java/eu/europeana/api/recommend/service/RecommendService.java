@@ -50,6 +50,16 @@ public class RecommendService {
         return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
+    public Mono getRecommendationsForEntity(String entityType, String entityId, int pageSize, String authToken, String apikey) {
+        // TODO Until the entity endpoint becomes available in the recommendation engine, we fake responses using random results from Search API
+        String entityFullId = "http://data.europeana.eu/" + entityType + "/base/" + entityId;
+        return searchApiClient.get()
+                .uri(generateEntitySearchQuery(entityFullId, pageSize, apikey))
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .retrieve()
+                .bodyToMono(Object.class);
+    }
+
     public Mono getRecommendationsForRecord(String recordId, int pageSize, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?item=").append(recordId)
@@ -103,6 +113,19 @@ public class RecommendService {
             s.append(SOLR_ID_FIELD).append(":\"").append(recordIds[i]).append('"');
         }
         s.append("&rows=").append(recordIds.length)
+                .append("&profile=minimal")
+                .append("&wskey=").append(wskey);
+        return s.toString();
+    }
+
+
+    // ---------------------- Temporary functionality below to mock entity recommendations
+
+    private String generateEntitySearchQuery(String entityFullId, int maxResults, String wskey) {
+        StringBuilder s = new StringBuilder(50)
+                .append("?query=text:\"").append(entityFullId).append("\"")
+                .append("&rows=").append(maxResults)
+                .append("&sort=random")
                 .append("&profile=minimal")
                 .append("&wskey=").append(wskey);
         return s.toString();
