@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -18,6 +19,8 @@ public class WebClients {
 
     private RecommendSettings config;
     private BuildInfo buildInfo;
+    // defaults to 10; will be overwritten when defined in properties
+    private int maxInMemSizeMb = 10;
 
     // TODO configure timeouts for webClients
     // TODO stress test to see how much traffic it can handle (with default settings)
@@ -25,11 +28,20 @@ public class WebClients {
     public WebClients(RecommendSettings config, BuildInfo buildInfo) {
         this.config = config;
         this.buildInfo = buildInfo;
+        if (null != config.getMaxInMemSizeMb()){
+            maxInMemSizeMb = config.getMaxInMemSizeMb();
+        }
     }
+
 
     @Bean
     public WebClient getSearchApiClient() {
         return WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder()
+                    .codecs(configurer -> configurer
+                        .defaultCodecs()
+                        .maxInMemorySize(maxInMemSizeMb * 1024 * 1024))
+                    .build())
                 .baseUrl(config.getSearchApiEndpoint())
                 .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
                 .filter(logRequest())
