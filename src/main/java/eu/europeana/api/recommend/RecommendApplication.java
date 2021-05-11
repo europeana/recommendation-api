@@ -17,6 +17,9 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 @SpringBootApplication
 public class RecommendApplication extends SpringBootServletInitializer {
 
+
+
+
     public static void main(String[] args) {
         // When deploying to Cloud Foundry, this will log the instance index number, IP and GUID
         LogManager.getLogger(RecommendApplication.class).
