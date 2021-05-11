@@ -34,7 +34,7 @@ public class RecommendSettings {
     private String rengineHost;
     @Value("${recommend.engine.recommend.path}")
     private String rengineRecommendPath;
-    @Value("${webclient.max.memsizemb}")
+    @Value("${webclient.max.memsizemb:10}")
     private String maxInMemSizeMb;
 
     /**
@@ -63,6 +63,9 @@ public class RecommendSettings {
         if (StringUtils.isNumeric(maxInMemSizeMb)){
             return Integer.parseInt(maxInMemSizeMb);
         } else {
+            if (StringUtils.isNotBlank(maxInMemSizeMb)) {
+                LOG.error("Value webclient.max.memsizemb is not numeric: {}", maxInMemSizeMb);
+            }
             return null;
         }
     }
