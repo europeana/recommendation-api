@@ -74,7 +74,7 @@ public class RecommendController {
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE)
                 @Min(value = 0, message = INCORRECT_PAGE)
-                @Max(value = MAX_PAGE, message = INCORRECT_PAGE_SIZE) int page,
+                @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
             @RequestParam(value = "seed", required = false, defaultValue = DEFAULT_PAGE) int seed,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
@@ -223,7 +223,7 @@ public class RecommendController {
                 @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE)
                 @Min(value = 0, message = INCORRECT_PAGE)
-                @Max(value = MAX_PAGE, message = INCORRECT_PAGE_SIZE) int page,
+                @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
             @RequestParam(value = "seed", required = false, defaultValue = DEFAULT_PAGE) int seed,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
