@@ -35,10 +35,14 @@ public class RecommendService {
         this.rengineClient = webClients.getRecommendEngineClient();
     }
 
-    public Mono getRecommendationsForSet(String setId, int pageSize, String token, String apikey) {
+    public Mono getRecommendationsForSet(String setId, int pageSize, int page, int seed, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?bucket=").append(setId)
-                .append("&size=").append(pageSize);
+                .append("&size=").append(pageSize)
+                .append("&skip=").append(pageSize * page);
+        if (seed != 0) {
+            s.append("&seed=").append(seed);
+        }
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
         if (recommendedIds.length == 0) {
             LOG.warn("No recommended records for set {}", setId);
@@ -60,10 +64,14 @@ public class RecommendService {
                 .bodyToMono(Object.class);
     }
 
-    public Mono getRecommendationsForRecord(String recordId, int pageSize, String token, String apikey) {
+    public Mono getRecommendationsForRecord(String recordId, int pageSize, int page, int seed, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?item=").append(recordId)
-                .append("&size=").append(pageSize);
+                .append("&size=").append(pageSize)
+                .append("&skip=").append(pageSize * page);
+        if (seed != 0) {
+            s.append("&seed=").append(seed);
+        }
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
         if (recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
