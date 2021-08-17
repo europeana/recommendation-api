@@ -20,10 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class RecommendEngineIT {
 
     //TODO At the moment only record recommendation tests will work as that will not check the token or key
-    // For sets the engine sends a request to Search API, so it should have a proper key or token
-    // So we should actually inject a proper key and token here
+    // For sets the engine sends a request to Search API, so it should have a proper key or token otherwise the
+    // engine will respond with 403
     private static final String TEST_API_KEY = RecommendControllerTest.TOKEN_API_KEY;
     private static final String TEST_TOKEN = RecommendControllerTest.TOKEN;
+
+    // which setId is valid for the used token depends on which environment we are using
+    private static final String SET_ID = "1433";
 
     @Autowired
     RecommendController recommendController;
@@ -31,21 +34,21 @@ public class RecommendEngineIT {
     @Test
     public void testGetSetRecommendationsWithToken() throws RecommendException {
         // we use setId 0 so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendSet("0", 4, 0, 0,null, TEST_TOKEN);
+        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 0, 0,null, TEST_TOKEN);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetSetRecommendationsWithPageSeed() throws RecommendException {
         // we use setId 0 so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendSet("0", 4, 3, new Random().nextInt(),null, TEST_TOKEN);
+        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 3, new Random().nextInt(),null, TEST_TOKEN);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetSetRecommendationsWithApiKey() throws RecommendException {
         // we use setId 0 so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendSet("0", 4, 0,0,TEST_API_KEY, null);
+        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 0,0,TEST_API_KEY, null);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 

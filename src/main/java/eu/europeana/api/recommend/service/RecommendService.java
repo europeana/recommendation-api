@@ -44,7 +44,7 @@ public class RecommendService {
             s.append("&seed=").append(seed);
         }
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
-        if (recommendedIds.length == 0) {
+        if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for set {}", setId);
             return null;
         } else {
@@ -73,7 +73,7 @@ public class RecommendService {
             s.append("&seed=").append(seed);
         }
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
-        if (recommendedIds.length == 0) {
+        if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
             return null;
         } else {
