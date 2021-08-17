@@ -33,7 +33,6 @@ public class WebClients {
         }
     }
 
-
     @Bean
     public WebClient getSearchApiClient() {
         return WebClient.builder()
@@ -52,6 +51,34 @@ public class WebClients {
     public WebClient getRecommendEngineClient() {
         return WebClient.builder()
                 .baseUrl(config.getREngineHost())
+                .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
+                .filter(logRequest())
+                .build();
+    }
+
+    @Bean
+    public WebClient getEntityApiClient() {
+        return WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(configurer -> configurer
+                                .defaultCodecs()
+                                .maxInMemorySize(maxInMemSizeMb * 1024 * 1024))
+                        .build())
+                .baseUrl(config.getEntityApiEndpoint())
+                .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
+                .filter(logRequest())
+                .build();
+    }
+
+    @Bean
+    public WebClient getSetApiClient() {
+        return WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(configurer -> configurer
+                                .defaultCodecs()
+                                .maxInMemorySize(maxInMemSizeMb * 1024 * 1024))
+                        .build())
+                .baseUrl(config.getSetApiEndpoint())
                 .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
                 .filter(logRequest())
                 .build();

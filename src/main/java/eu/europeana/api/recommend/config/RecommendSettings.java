@@ -28,12 +28,25 @@ public class RecommendSettings {
 
     @Value("${search.api.host}")
     private String searchApiHost;
+
     @Value("${search.api.endpoint}")
     private String searchApiEndpoint;
+
+    @Value("${entity.api.endpoint}")
+    private String entityApiEndpoint;
+
+    @Value("${set.api.endpoint}")
+    private String setApiEndpoint;
+
+    @Value("${set.api.pagesize}")
+    private String setApiPageSize;
+
     @Value("${recommend.engine.host}")
     private String rengineHost;
+
     @Value("${recommend.engine.recommend.path}")
     private String rengineRecommendPath;
+
     @Value("${webclient.max.memsizemb:10}")
     private String maxInMemSizeMb;
 
@@ -59,6 +72,18 @@ public class RecommendSettings {
         return rengineRecommendPath;
     }
 
+    public String getEntityApiEndpoint() {
+        return entityApiEndpoint;
+    }
+
+    public String getSetApiEndpoint() {
+        return setApiEndpoint;
+    }
+
+    public String getSetApiPageSize() {
+        return setApiPageSize;
+    }
+
     public Integer getMaxInMemSizeMb() {
         if (StringUtils.isNumeric(maxInMemSizeMb)){
             return Integer.parseInt(maxInMemSizeMb);
@@ -78,6 +103,8 @@ public class RecommendSettings {
         LOG.info("Recommendation API settings:");
         LOG.info("  Search API endpoint: {}", searchApiEndpoint);
         LOG.info("  Recommender engine host: {}", rengineHost);
+
+        // TODO LOG other endpoints
     }
 
     private String addProtocolIfMissing(String hostName) {
