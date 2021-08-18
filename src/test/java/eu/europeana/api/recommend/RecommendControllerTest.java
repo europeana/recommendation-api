@@ -7,15 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -79,6 +76,13 @@ public class RecommendControllerTest {
                 .andExpect(status().is(401));
     }
 
+    @Test
+    public void testNoAuthorizationEntity() throws Exception {
+        mockMvc.perform(get("/recommend/entity/{type}/{base}/{id}.json",
+                        "agent", "base", "1"))
+                .andExpect(status().is(401));
+    }
+
     /**
      * Test the empty response for sets recommendation with valid input, as well as getting the apikey from a token
      */
@@ -118,6 +122,20 @@ public class RecommendControllerTest {
                 "92092", "BibliographicResource_1000086018920")
                 .param(WSKEY_PARAM, WSKEY_VALUE))
                 .andDo(print());
+        checkValidEmtpyResponse(expected, result);
+    }
+
+    /**
+     * Test the empty response for entity recommendation, using an apikey only
+     */
+    @Test
+    public void testEmptyRecommendEntityResponse() throws Exception {
+        SearchAPIEmptyResponse expected = new SearchAPIEmptyResponse(WSKEY_VALUE );
+        ResultActions result = mockMvc.perform(get("/recommend/entity/{type}/{base}/{id}.json",
+                        "agent", "base", "1" )
+                        .param(WSKEY_PARAM, WSKEY_VALUE)).
+                andDo(print());
+
         checkValidEmtpyResponse(expected, result);
     }
 

@@ -1,0 +1,37 @@
+{
+  "@context": "http://www.europeana.eu/schemas/context/entity.jsonld",
+  "id": "https://entity-api/entity/search?testing",
+  "type": "ResultPage",
+  "total": 1,
+  "partOf": {
+    "id": "https://entity-api/entity/search?testing",
+    "type": "ResultList",
+    "total": 1
+  },
+  "items": [
+    {
+      "id": "http://data.europeana.eu/agent/base/123Test",
+      "type": "Agent",
+      "prefLabel": {
+        "ar": "ساندرو بوتيتشيلي",
+        "az": "Sandro Botiçelli",
+        "be": "Сандра Бацічэлі",
+        "bg": "Сандро Ботичели",
+        "he": "סנדרו בוטיצ'לי",
+        "hr": "Sandro Botticelli",
+        "hu": "Sandro Botticelli",
+        "hy": "Սանդրո Բոտիչելլի"
+      },
+      "altLabel": {
+        "en": [
+          "Alessandro di Mariano di Vanni Filipepi",
+          "Botticelli, Sandro"
+        ],
+        "ba": [
+          "আলেসান্দ্রো ডি মারিয়ানো ডি ভ্যানি ফিলিপেপি",
+          "বত্তিচেল্লি, সান্দ্রো"
+        ]
+      }
+    }
+  ]
+}

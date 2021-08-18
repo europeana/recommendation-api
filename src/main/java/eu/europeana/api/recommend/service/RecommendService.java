@@ -98,7 +98,6 @@ public class RecommendService {
        StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
               .append("/entity")
              .append("?size=").append(pageSize);
-       System.out.println(s.toString());
        String[] recommendedIds = getRecommendations(s.toString(), jsonBody, token, apikey).block();
         if (recommendedIds.length == 0) {
             LOG.warn("No recommended records for entity {}", entityId);
@@ -116,6 +115,9 @@ public class RecommendService {
      * 2) calls User Sets API to check whether an Entity Set exists and obtain all the items IDs
      *    Default page size : (page=0&pageSize=20);
      * 3) construct a JSON object composed of the labels and items to be sent to the Recommendation Engine API
+     * 4) if there are no results from any of the above api : empty request will be formed and sent to engine
+     * ex: {"labels":[{"title":"","descriptions":null}],"items":[""]}
+     * This is to avoid Internal Server errors from engine due to null postBody
      *
      * @param entityId
      * @param apikey
@@ -149,11 +151,14 @@ public class RecommendService {
         try {
             JSONObject jsonObject = new JSONObject(getEntityApiSearchResponse(entityUrl));
             List<String> extractedLabels = getRecommendServiceUtils().extractLabels(jsonObject);
+            List<Labels> labels = new ArrayList<>();
             if (!extractedLabels.isEmpty()) {
-                List<Labels> labels = new ArrayList<>();
                 for (String label : extractedLabels) {
-                    labels.add(new Labels(label, ""));
+                    labels.add(new Labels(label));
                 }
+                request.setLabels(labels);
+            } else {
+                labels.add(new Labels(""));
                 request.setLabels(labels);
             }
         } catch (JSONException e) {
@@ -174,6 +179,8 @@ public class RecommendService {
             List<String> items=getRecommendServiceUtils().extractItems(jsonObject);
             if (!items.isEmpty()) {
                 request.setItems(items.toArray(new String[0]));
+            } else {
+                request.setItems(new String[]{""});
             }
         } catch (JSONException e) {
             LOG.error("Error parsing set api response for url {}", setApiUrl);
