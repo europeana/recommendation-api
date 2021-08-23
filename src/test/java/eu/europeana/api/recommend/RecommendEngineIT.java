@@ -34,42 +34,42 @@ public class RecommendEngineIT {
     @Test
     public void testGetSetRecommendationsWithToken() throws RecommendException {
         // we use setId 0 so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 0, 0,null, TEST_TOKEN);
+        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 0, null,null, TEST_TOKEN);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetSetRecommendationsWithPageSeed() throws RecommendException {
         // we use setId 0 so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 3, new Random().nextInt(),null, TEST_TOKEN);
+        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 3, String.valueOf(new Random().nextInt()),null, TEST_TOKEN);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetSetRecommendationsWithApiKey() throws RecommendException {
         // we use setId 0 so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 0,0,TEST_API_KEY, null);
+        ResponseEntity response = recommendController.recommendSet(SET_ID, 4, 0,null,TEST_API_KEY, null);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetRecordRecommendationsWithToken() throws RecommendException {
         // we use a non-existing record so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendRecord("x", "y", 4, 0,0,null, TEST_TOKEN);
+        ResponseEntity response = recommendController.recommendRecord("x", "y", 4, 0,null,null, TEST_TOKEN);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetRecordRecommendationsWithPageSeed() throws RecommendException {
         // we use a non-existing record so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendRecord("x", "y", 4, 3, new Random().nextInt(),null, TEST_TOKEN);
+        ResponseEntity response = recommendController.recommendRecord("x", "y", 4, 3, String.valueOf(new Random().nextInt()),null, TEST_TOKEN);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetRecordRecommendationsWithApiKey() throws RecommendException {
         // we use a non-existing record so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendRecord("x", "y", 4, 0,0,TEST_API_KEY, null);
+        ResponseEntity response = recommendController.recommendRecord("x", "y", 4, 0,null,TEST_API_KEY, null);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
