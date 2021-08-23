@@ -40,6 +40,7 @@ public class RecommendController {
     private static final String ENTITY_TYPE_REGEX = "^(?i)[agent|concept|place]*$";
     private static final String EUROPEANA_ID_FIELD_REGEX = "^[a-zA-Z0-9_]*$";
     private static final String APIKEY_REGEX = "^[a-zA-Z0-9_]*$";
+    private static final String SEED_REGEX = "-?[1-9]\\d*|0";
     private static final String DEFAULT_PAGE_SIZE = "10";
     private static final int MAX_PAGE_SIZE = 50;
     private static final String DEFAULT_PAGE = "0";
@@ -52,6 +53,7 @@ public class RecommendController {
     private static final String INVALID_RECORD_ID_MESSAGE = "Invalid record identifier. Only alpha-numeric characters and underscore are allowed";
     private static final String INCORRECT_PAGE_SIZE = "The page size is not a number between 1 and " + MAX_PAGE_SIZE;
     private static final String INCORRECT_PAGE = "The page value is not a number between 0 and " + MAX_PAGE;
+    private static final String INVALID_SEED_MESSAGE = "Invalid seed value. Seed is an Integer, only numbers are allowed";
 
     private static final String INVALID_APIKEY_MESSAGE = "Invalid API key format";
 
@@ -75,7 +77,8 @@ public class RecommendController {
             @RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE)
                 @Min(value = 0, message = INCORRECT_PAGE)
                 @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
-            @RequestParam(value = "seed", required = false, defaultValue = DEFAULT_PAGE) int seed,
+            @RequestParam(value = "seed", required = false)
+                @Pattern(regexp = SEED_REGEX, message = INVALID_SEED_MESSAGE) String seed,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
@@ -108,7 +111,7 @@ public class RecommendController {
         validateRecordIds(ids);
 
         // TODO for now we simply return the same number of recommendations as received
-        return recommendSet(setId, ids.length, 0, 0,  wskey, authToken);
+        return recommendSet(setId, ids.length, 0, null,  wskey, authToken);
     }
 
     @DeleteMapping(value = {"/recommend/set/{setId}.json", "/recommend/set/{setId}",
@@ -129,7 +132,7 @@ public class RecommendController {
         validateRecordIds(ids);
 
         // TODO for now we simply return the same number of recommendations as received
-        return recommendSet(setId, ids.length, 0, 0,  wskey, authToken);
+        return recommendSet(setId, ids.length, 0, null,  wskey, authToken);
     }
 
 
@@ -224,7 +227,8 @@ public class RecommendController {
             @RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE)
                 @Min(value = 0, message = INCORRECT_PAGE)
                 @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
-            @RequestParam(value = "seed", required = false, defaultValue = DEFAULT_PAGE) int seed,
+            @RequestParam(value = "seed", required = false)
+                @Pattern(regexp = SEED_REGEX, message = INVALID_SEED_MESSAGE) String seed,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
@@ -261,7 +265,7 @@ public class RecommendController {
         validateRecordIds(ids);
 
         // TODO for now we simply return the same number of recommendations as received
-        return recommendRecord(datasetId, localId, ids.length, 0, 0, wskey, authToken);
+        return recommendRecord(datasetId, localId, ids.length, 0, null, wskey, authToken);
     }
 
     @DeleteMapping(value = {"/recommend/record/{datasetId}/{localId}.json", "/recommend/record/{datasetId}/{localId}",
@@ -284,7 +288,7 @@ public class RecommendController {
         validateRecordIds(ids);
 
         // TODO for now we simply return the same number of recommendations as received
-        return recommendRecord(datasetId, localId, ids.length,0, 0, wskey, authToken);
+        return recommendRecord(datasetId, localId, ids.length,0, null, wskey, authToken);
     }
 
     /**

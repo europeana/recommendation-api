@@ -110,6 +110,19 @@ public class RecommendControllerTest {
     }
 
     /**
+     * Test the invalid seed value
+     */
+    @Test
+    public void testSetRecommendWithInvalidSeed() throws Exception {
+         ResultActions result = mockMvc.perform(get("/recommend/set/{setId}", "2")
+                        .header(AUTH_HEADER, TOKEN)
+                        .param(PAGE_PARAM, "5")
+                        .param(SEED_PARAM, "test1234"))
+                .andExpect(status().is(400));
+    }
+
+
+    /**
      * Test the empty response for record recommendation with valid input, as well as getting the apikey from a token (when both
      * token and wskey are provided)
      */
@@ -152,6 +165,19 @@ public class RecommendControllerTest {
                         .param(SEED_PARAM, String.valueOf(new Random().nextInt())))
                 .andDo(print());
         checkValidEmtpyResponse(expected, result);
+    }
+
+    /**
+     * Test the empty response for record recommendation, using an apikey only
+     */
+    @Test
+    public void testRecordRecommendInvalidSeed() throws Exception {
+        ResultActions result = mockMvc.perform(get("/recommend/record/{datasetId}/{localId}.json",
+                        "92092", "BibliographicResource_1000086018920")
+                        .param(WSKEY_PARAM, WSKEY_VALUE)
+                        .param(PAGE_PARAM, "10")
+                        .param(SEED_PARAM, "test456"))
+                .andExpect(status().is(400));
     }
 
     private ResultActions checkValidEmtpyResponse(SearchAPIEmptyResponse expected, ResultActions response) throws Exception {
