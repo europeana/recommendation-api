@@ -40,6 +40,9 @@ public class RecommendService {
                 .append("?bucket=").append(setId)
                 .append("&size=").append(pageSize)
                 .append("&skip=").append(pageSize * page);
+        if (seed != null) {
+            s.append("&seed=").append(seed);
+        }
 
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
         if (recommendedIds == null || recommendedIds.length == 0) {
@@ -49,7 +52,7 @@ public class RecommendService {
             LOG.debug("Recommend engine returned {} items for set {}", recommendedIds.length, setId);
         }
 
-        return getSearchApiResponse(recommendedIds, seed, pageSize, apikey);
+        return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
     public Mono getRecommendationsForEntity(String entityType, String entityId, int pageSize, String authToken, String apikey) {
@@ -67,7 +70,9 @@ public class RecommendService {
                 .append("?item=").append(recordId)
                 .append("&size=").append(pageSize)
                 .append("&skip=").append(pageSize * page);
-
+        if (seed != null) {
+            s.append("&seed=").append(seed);
+        }
         String[] recommendedIds = getRecommendations(s.toString(), token, apikey).block();
         if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
@@ -76,7 +81,7 @@ public class RecommendService {
             LOG.debug("Recommend engine returned {} items for record {}", recommendedIds.length, recordId);
         }
 
-        return getSearchApiResponse(recommendedIds, seed, pageSize, apikey);
+        return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
     private Mono<String[]> getRecommendations(String recommendQuery, String token, String apikey) {
@@ -95,8 +100,8 @@ public class RecommendService {
     /**
      * We use reactive (non-blocking) WebClient to retrieve data from Search API
      */
-    private Mono<Object> getSearchApiResponse(String[] recordIds, String seed, int maxResults, String wskey) {
-        String query = generateSearchQuery(recordIds, seed, maxResults, wskey);
+    private Mono<Object> getSearchApiResponse(String[] recordIds, int maxResults, String wskey) {
+        String query = generateSearchQuery(recordIds, maxResults, wskey);
         return searchApiClient.get()
                 .uri(query)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -108,7 +113,7 @@ public class RecommendService {
      * Constructs a Search API query in the form
      * <pre>query=europeana_id:("/x1/y1" OR "/x2/y2 OR "/x3/y3")&pageSize=3&profile=minimal&wskey=[wskey]</pre>
      */
-    private String generateSearchQuery(String[] recordIds, String seed, int maxResults, String wskey) {
+    private String generateSearchQuery(String[] recordIds, int maxResults, String wskey) {
         StringBuilder s = new StringBuilder(50).append("?query=");
         for  (int i = 0; i < maxResults && i < recordIds.length; i++) {
             if (i > 0) {
@@ -119,10 +124,6 @@ public class RecommendService {
         s.append("&rows=").append(recordIds.length)
                 .append("&profile=minimal")
                 .append("&wskey=").append(wskey);
-        // random sorting for search api
-        if(seed != null) {
-            s.append("&sort=random_").append(seed);
-        }
         return s.toString();
     }
 
