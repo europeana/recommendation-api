@@ -7,15 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.hamcrest.Matchers.containsString;
+import java.util.Random;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,6 +30,10 @@ public class RecommendControllerTest {
 
     private static final String WSKEY_PARAM     = "wskey";
     private static final String WSKEY_VALUE     = "anotherTestKey";
+    private static final String PAGE_PARAM     = "page";
+    private static final String SEED_PARAM     = "seed";
+
+
 
     @MockBean
     private RecommendService recommendService;
@@ -93,6 +95,34 @@ public class RecommendControllerTest {
     }
 
     /**
+     * Test the empty response for sets recommendation with valid input, as well as getting the apikey from a token
+     */
+    @Test
+    public void testEmptyResponseSetWithPageSeedTokenOnly() throws Exception {
+        SearchAPIEmptyResponse expected = new SearchAPIEmptyResponse(TOKEN_API_KEY);
+
+        ResultActions result = mockMvc.perform(get("/recommend/set/{setId}", "2")
+                        .header(AUTH_HEADER, TOKEN)
+                        .param(PAGE_PARAM, "5")
+                        .param(SEED_PARAM, String.valueOf(new Random().nextInt())))
+                .andDo(print());
+        checkValidEmtpyResponse(expected, result);
+    }
+
+    /**
+     * Test the invalid seed value
+     */
+    @Test
+    public void testSetRecommendWithInvalidSeed() throws Exception {
+         ResultActions result = mockMvc.perform(get("/recommend/set/{setId}", "2")
+                        .header(AUTH_HEADER, TOKEN)
+                        .param(PAGE_PARAM, "5")
+                        .param(SEED_PARAM, "test1234"))
+                .andExpect(status().is(400));
+    }
+
+
+    /**
      * Test the empty response for record recommendation with valid input, as well as getting the apikey from a token (when both
      * token and wskey are provided)
      */
@@ -119,6 +149,35 @@ public class RecommendControllerTest {
                 .param(WSKEY_PARAM, WSKEY_VALUE))
                 .andDo(print());
         checkValidEmtpyResponse(expected, result);
+    }
+
+    /**
+     * Test the empty response for record recommendation, using an apikey only
+     */
+    @Test
+    public void testEmptyResponseWithPageSeedRecordKeyOnly() throws Exception {
+        SearchAPIEmptyResponse expected = new SearchAPIEmptyResponse(WSKEY_VALUE );
+
+        ResultActions result = mockMvc.perform(get("/recommend/record/{datasetId}/{localId}.json",
+                        "92092", "BibliographicResource_1000086018920")
+                        .param(WSKEY_PARAM, WSKEY_VALUE)
+                        .param(PAGE_PARAM, "10")
+                        .param(SEED_PARAM, String.valueOf(new Random().nextInt())))
+                .andDo(print());
+        checkValidEmtpyResponse(expected, result);
+    }
+
+    /**
+     * Test the empty response for record recommendation, using an apikey only
+     */
+    @Test
+    public void testRecordRecommendInvalidSeed() throws Exception {
+        ResultActions result = mockMvc.perform(get("/recommend/record/{datasetId}/{localId}.json",
+                        "92092", "BibliographicResource_1000086018920")
+                        .param(WSKEY_PARAM, WSKEY_VALUE)
+                        .param(PAGE_PARAM, "10")
+                        .param(SEED_PARAM, "test456"))
+                .andExpect(status().is(400));
     }
 
     private ResultActions checkValidEmtpyResponse(SearchAPIEmptyResponse expected, ResultActions response) throws Exception {
