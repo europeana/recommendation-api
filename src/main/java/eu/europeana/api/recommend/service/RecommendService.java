@@ -4,9 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api.recommend.config.RecommendSettings;
 import eu.europeana.api.recommend.config.WebClients;
+import eu.europeana.api.recommend.exception.EntityNotFoundException;
 import eu.europeana.api.recommend.model.EntityRecommendRequest;
 import eu.europeana.api.recommend.model.Labels;
-import eu.europeana.api.recommend.util.RecommendServiceUtils;
+import eu.europeana.api.recommend.util.EntityAPIUtils;
+import eu.europeana.api.recommend.util.SearchAPIUtils;
+import eu.europeana.api.recommend.util.SetAPIUtils;
 import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +38,6 @@ public class RecommendService {
     private static final Logger LOG = LogManager.getLogger(RecommendService.class);
 
     private RecommendSettings config;
-    private RecommendServiceUtils recommendServiceUtils;
     private WebClient searchApiClient;
     private WebClient entityApiClient;
     private WebClient setApiClient;
@@ -43,15 +45,10 @@ public class RecommendService {
 
     public RecommendService(RecommendSettings config, WebClients webClients) {
         this.config = config;
-        recommendServiceUtils = new RecommendServiceUtils();
         this.searchApiClient = webClients.getSearchApiClient();
         this.entityApiClient = webClients.getEntityApiClient();
         this.setApiClient = webClients.getSetApiClient();
         this.rengineClient = webClients.getRecommendEngineClient();
-    }
-
-    public RecommendServiceUtils getRecommendServiceUtils() {
-        return recommendServiceUtils;
     }
 
     public Mono getRecommendationsForSet(String setId, int pageSize, String token, String apikey) {
@@ -87,18 +84,23 @@ public class RecommendService {
     /**
      * Get recommendations for entity
      *
-     * @param entityId
-     * @param jsonBody
+     * @param type
+     * @param id
      * @param pageSize
      * @param token
      * @param apikey
      * @return
      */
-    public Mono getRecommendationsForEntity(String entityId, String jsonBody, int pageSize, String token, String apikey) {
+    public Mono getRecommendationsForEntity(String type, String id, int pageSize, String token, String apikey) throws EntityNotFoundException {
+       // generate entity ID
+       String entityId = buildEntityId(type, id);
+       // create request body for entity api
+       String requestBody = getEntityRecommendationRequest(entityId, apikey);
+
        StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
               .append("/entity")
-             .append("?size=").append(pageSize);
-       String[] recommendedIds = getRecommendations(s.toString(), jsonBody, token, apikey).block();
+              .append("?size=").append(pageSize);
+       String[] recommendedIds = getRecommendations(s.toString(), requestBody, token, apikey).block();
         if (recommendedIds.length == 0) {
             LOG.warn("No recommended records for entity {}", entityId);
             return null;
@@ -122,19 +124,20 @@ public class RecommendService {
      * @param entityId
      * @param apikey
      * @return
+     * @throws EntityNotFoundException
      */
-    public String getEntityRecommendationRequest(String entityId, String apikey) {
+    public String getEntityRecommendationRequest(String entityId, String apikey) throws EntityNotFoundException {
         EntityRecommendRequest request = new EntityRecommendRequest();
 
         // fetch the skos:prefLabels and skos:altlabels from Entity API
         StringBuilder entityApiUrl = new StringBuilder(config.getEntityApiEndpoint())
-                .append(getRecommendServiceUtils().entityApiSearchQuery(entityId, apikey));
-        getLabels(request, entityApiUrl.toString());
+                .append(EntityAPIUtils.entityApiSearchQuery(entityId, apikey));
+        getLabels(request, entityApiUrl.toString(), entityId);
 
         // fetch Entity Set items from set api
         StringBuilder setApiUrl = new StringBuilder(config.getSetApiEndpoint()).
-                append(getRecommendServiceUtils().setApiSearchQuery(entityId, config.getSetApiPageSize(), apikey));
-        getItems(request, setApiUrl.toString());
+                append(SetAPIUtils.setApiSearchQuery(entityId, config.getSetApiPageSize(), apikey));
+        getItems(request, setApiUrl.toString(), entityId);
 
         // serialise the request
         return serialiseEntityRequest(request);
@@ -147,10 +150,11 @@ public class RecommendService {
      * @param request
      * @param entityUrl
      */
-    private void getLabels(EntityRecommendRequest request, String entityUrl) {
+    private void getLabels(EntityRecommendRequest request, String entityUrl, String entityId) throws EntityNotFoundException {
         try {
             JSONObject jsonObject = new JSONObject(getEntityApiSearchResponse(entityUrl));
-            List<String> extractedLabels = getRecommendServiceUtils().extractLabels(jsonObject);
+            checkIfEntityExists(jsonObject, entityId, false);
+            List<String> extractedLabels = EntityAPIUtils.extractLabels(jsonObject);
             List<Labels> labels = new ArrayList<>();
             if (!extractedLabels.isEmpty()) {
                 for (String label : extractedLabels) {
@@ -162,7 +166,7 @@ public class RecommendService {
                 request.setLabels(labels);
             }
         } catch (JSONException e) {
-            LOG.error("Error parsing entity api response for url {}", entityUrl);
+            LOG.error("Error parsing entity api response for url {}. {}", entityUrl, e);
         }
     }
 
@@ -173,17 +177,33 @@ public class RecommendService {
      * @param request
      * @param setApiUrl
      */
-    private void getItems(EntityRecommendRequest request, String setApiUrl) {
+    private void getItems(EntityRecommendRequest request, String setApiUrl, String entityId) throws EntityNotFoundException {
         try {
             JSONObject jsonObject = new JSONObject(getSetApiSearchResponse(setApiUrl));
-            List<String> items=getRecommendServiceUtils().extractItems(jsonObject);
+            checkIfEntityExists(jsonObject, entityId, true);
+            List<String> items= SetAPIUtils.extractItems(jsonObject);
             if (!items.isEmpty()) {
                 request.setItems(items.toArray(new String[0]));
             } else {
                 request.setItems(new String[]{""});
             }
         } catch (JSONException e) {
-            LOG.error("Error parsing set api response for url {}", setApiUrl);
+            LOG.error("Error parsing set api response for url {}. {}", setApiUrl, e);
+        }
+    }
+
+    /**
+     * Will check in json if total value is not 0 in the ResultPage
+     *
+     * @param jsonObject
+     * @param entityUri
+     * @throws EntityNotFoundException
+     * @throws JSONException
+     */
+    private void checkIfEntityExists(JSONObject jsonObject, String entityUri, boolean entitySet) throws EntityNotFoundException, JSONException {
+        if (Integer.parseInt(String.valueOf(jsonObject.get(EntityAPIUtils.TOTAL))) == 0) {
+            String msg = entitySet ? "Entity Set for " : "Entity " ;
+            throw new EntityNotFoundException(msg + entityUri + " not found.");
         }
     }
 
@@ -211,7 +231,7 @@ public class RecommendService {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            LOG.error("Error serialising the Entity recommendation request");
+            LOG.error("Error serialising the Entity recommendation request. ", e);
         }
         return "";
     }
@@ -269,7 +289,7 @@ public class RecommendService {
      * We use reactive (non-blocking) WebClient to retrieve data from Search API
      */
     private Mono<Object> getSearchApiResponse(String[] recordIds, int maxResults, String wskey) {
-        String query = getRecommendServiceUtils().generateSearchQuery(recordIds, maxResults, wskey);
+        String query = SearchAPIUtils.generateSearchQuery(recordIds, maxResults, wskey);
         return searchApiClient.get()
                 .uri(query)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)

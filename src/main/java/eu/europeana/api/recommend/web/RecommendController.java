@@ -142,9 +142,7 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String apikey = checkCredentials(authToken, wskey);
-        String entityId = recommendService.buildEntityId(type, id);
-        String requestBody = recommendService.getEntityRecommendationRequest(entityId, apikey);
-        Mono result = recommendService.getRecommendationsForEntity(entityId, requestBody, pageSize, authToken, apikey);
+        Mono result = recommendService.getRecommendationsForEntity(type, id, pageSize, authToken, apikey);
         if (result == null) {
             return new ResponseEntity(new SearchAPIEmptyResponse(apikey), HttpStatus.OK);
         }
