@@ -51,12 +51,17 @@ public class RecommendService {
         this.rengineClient = webClients.getRecommendEngineClient();
     }
 
-    public Mono getRecommendationsForSet(String setId, int pageSize, String token, String apikey) {
+    public Mono getRecommendationsForSet(String setId, int pageSize, int page, String seed, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?bucket=").append(setId)
-                .append("&size=").append(pageSize);
+                .append("&size=").append(pageSize)
+                .append("&skip=").append(pageSize * page);
+        if (seed != null) {
+            s.append("&seed=").append(seed);
+        }
+
         String[] recommendedIds = getRecommendations(s.toString(), null, token, apikey).block();
-        if (recommendedIds.length == 0) {
+        if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for set {}", setId);
             return null;
         } else {
@@ -66,12 +71,16 @@ public class RecommendService {
         return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
-    public Mono getRecommendationsForRecord(String recordId, int pageSize, String token, String apikey) {
+    public Mono getRecommendationsForRecord(String recordId, int pageSize, int page, String seed, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?item=").append(recordId)
-                .append("&size=").append(pageSize);
+                .append("&size=").append(pageSize)
+                .append("&skip=").append(pageSize * page);
+        if (seed != null) {
+            s.append("&seed=").append(seed);
+        }
         String[] recommendedIds = getRecommendations(s.toString(), null, token, apikey).block();
-        if (recommendedIds.length == 0) {
+        if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
             return null;
         } else {
@@ -101,7 +110,7 @@ public class RecommendService {
               .append("/entity")
               .append("?size=").append(pageSize);
        String[] recommendedIds = getRecommendations(s.toString(), requestBody, token, apikey).block();
-        if (recommendedIds.length == 0) {
+        if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for entity {}", entityId);
             return null;
         } else {
