@@ -33,25 +33,37 @@ public class WebClients {
         }
     }
 
-
     @Bean
     public WebClient getSearchApiClient() {
-        return WebClient.builder()
-                .exchangeStrategies(ExchangeStrategies.builder()
-                    .codecs(configurer -> configurer
-                        .defaultCodecs()
-                        .maxInMemorySize(maxInMemSizeMb * 1024 * 1024))
-                    .build())
-                .baseUrl(config.getSearchApiEndpoint())
-                .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
-                .filter(logRequest())
-                .build();
+        return getApiClient(config.getSearchApiEndpoint(), true);
     }
 
     @Bean
     public WebClient getRecommendEngineClient() {
-        return WebClient.builder()
-                .baseUrl(config.getREngineHost())
+        return getApiClient(config.getREngineHost(), false);
+    }
+
+    @Bean
+    public WebClient getEntityApiClient() {
+        return getApiClient(config.getEntityApiEndpoint(), true);
+    }
+
+    @Bean
+    public WebClient getSetApiClient() {
+        return getApiClient(config.getSetApiEndpoint(), true);
+    }
+
+    private WebClient getApiClient(String apiEndpoint, boolean exchangeStrategy) {
+        WebClient.Builder webClientBuilder = WebClient.builder();
+        if (exchangeStrategy) {
+             webClientBuilder.exchangeStrategies(ExchangeStrategies.builder()
+                    .codecs(configurer -> configurer
+                            .defaultCodecs()
+                            .maxInMemorySize(maxInMemSizeMb * 1024 * 1024))
+                    .build());
+        }
+        return webClientBuilder
+                .baseUrl(apiEndpoint)
                 .defaultHeader(HttpHeaders.USER_AGENT, generateUserAgentName())
                 .filter(logRequest())
                 .build();

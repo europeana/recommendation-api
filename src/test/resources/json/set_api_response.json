@@ -1,0 +1,43 @@
+{
+  "@context": "http://www.europeana.eu/schemas/context/collection.jsonld",
+  "id": "https://set/set/search.json?test",
+  "type": "ResultPage",
+  "partOf": {
+    "id": "https://set/set/search.json?test",
+    "type": "ResultList",
+    "total": 1,
+    "first": "https://set/set/search.json?test",
+    "last": "https://set/set/search.json?test"
+  },
+  "total": 1,
+  "items": [
+    {
+      "id": "http://data.europeana.eu/set/2881",
+      "type": "EntityBestItemsSet",
+      "title": {
+        "en": "Art Nouveau Page"
+      },
+      "subject": [
+        "http://data.europeana.eu/concept/base/aa"
+      ],
+      "visibility": "public",
+      "pinned": 7,
+      "items": [
+        "http://data.europeana.eu/item/abcd/P755",
+        "http://data.europeana.eu/item/abcd/Part22A",
+        "http://data.europeana.eu/item/abcd/Kunst__94",
+        "http://data.europeana.eu/item/abcd/oai4",
+        "http://data.europeana.eu/item/abcd/api_html7db2",
+        "http://data.europeana.eu/item/abcd/Br_han68",
+        "http://data.europeana.eu/item/abcd/21_19"
+      ],
+      "creator": {
+        "id": "http://data.europeana.eu/user/junit",
+        "nickname": "entitygalleries"
+      },
+      "created": "2021-07-22T11:06:10Z",
+      "modified": "2021-07-22T11:06:10Z",
+      "total": 7
+    }
+  ]
+}

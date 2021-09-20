@@ -105,6 +105,13 @@
             <version>${commons.lang3.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.codehaus.jettison/jettison -->
+        <dependency>
+            <groupId>org.codehaus.jettison</groupId>
+            <artifactId>jettison</artifactId>
+            <version>1.4.1</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

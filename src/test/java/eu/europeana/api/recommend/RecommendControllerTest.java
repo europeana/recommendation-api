@@ -11,7 +11,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Random;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -78,6 +77,13 @@ public class RecommendControllerTest {
     public void testNoAuthorizationRecord() throws Exception {
         mockMvc.perform(get("/recommend/record/{datasetId}/{localId}.json",
                 "92092", "BibliographicResource_1000086018920"))
+                .andExpect(status().is(401));
+    }
+
+    @Test
+    public void testNoAuthorizationEntity() throws Exception {
+        mockMvc.perform(get("/recommend/entity/{type}/{base}/{id}.json",
+                        "agent", "base", "1"))
                 .andExpect(status().is(401));
     }
 
@@ -148,6 +154,20 @@ public class RecommendControllerTest {
                 "92092", "BibliographicResource_1000086018920")
                 .param(WSKEY_PARAM, WSKEY_VALUE))
                 .andDo(print());
+        checkValidEmtpyResponse(expected, result);
+    }
+
+    /**
+     * Test the empty response for entity recommendation, using an apikey only
+     */
+    @Test
+    public void testEmptyRecommendEntityResponse() throws Exception {
+        SearchAPIEmptyResponse expected = new SearchAPIEmptyResponse(WSKEY_VALUE );
+        ResultActions result = mockMvc.perform(get("/recommend/entity/{type}/{base}/{id}.json",
+                        "agent", "base", "1" )
+                        .param(WSKEY_PARAM, WSKEY_VALUE)).
+                andDo(print());
+
         checkValidEmtpyResponse(expected, result);
     }
 
