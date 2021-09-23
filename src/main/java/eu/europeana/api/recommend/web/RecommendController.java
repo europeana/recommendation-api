@@ -6,6 +6,7 @@ import eu.europeana.api.recommend.exception.RecommendException;
 import eu.europeana.api.recommend.model.SearchAPIEmptyResponse;
 import eu.europeana.api.recommend.service.RecommendService;
 import eu.europeana.api.recommend.service.TokenUtils;
+import eu.europeana.api.recommend.util.RecommendationConstants;
 import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,7 +84,7 @@ public class RecommendController {
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        String apikey = checkCredentials(authToken, wskey);
+        String apikey = checkCredentials(authToken, wskey, false);
 
         Mono result = recommendService.getRecommendationsForSet(setId, pageSize, page, seed, authToken, apikey);
         if (result == null) {
@@ -107,10 +108,10 @@ public class RecommendController {
             @Valid @RequestBody String[] ids,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        //String apikey = checkCredentials(authToken, wskey);
+        String userId = checkCredentials(authToken, wskey, true);
+        System.out.println("user id :" + userId);
         validateRecordIds(ids);
-
-        // TODO for now we simply return the same number of recommendations as received
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
         return recommendSet(setId, ids.length, 0, null,  wskey, authToken);
     }
 
@@ -128,10 +129,9 @@ public class RecommendController {
             @Valid @RequestBody String[] ids,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        //String apikey = checkCredentials(authToken, wskey);
+        String userId = checkCredentials(authToken, wskey, true);
         validateRecordIds(ids);
-
-        // TODO for now we simply return the same number of recommendations as received
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
         return recommendSet(setId, ids.length, 0, null,  wskey, authToken);
     }
 
@@ -152,7 +152,7 @@ public class RecommendController {
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        String apikey = checkCredentials(authToken, wskey);
+        String apikey = checkCredentials(authToken, wskey, false);
         Mono result = recommendService.getRecommendationsForEntity(type, id, pageSize, authToken, apikey);
         if (result == null) {
             return new ResponseEntity(new SearchAPIEmptyResponse(apikey), HttpStatus.OK);
@@ -179,10 +179,9 @@ public class RecommendController {
             @Valid @RequestBody String[] ids,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        //String apikey = checkCredentials(authToken, wskey);
+        String userId = checkCredentials(authToken, wskey, true);
         validateRecordIds(ids);
-
-        // TODO for now we simply return the same number of recommendations as received
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
         return recommendEntity(type, base, id, ids.length, wskey, authToken);
     }
 
@@ -204,10 +203,9 @@ public class RecommendController {
             @Valid @RequestBody String[] ids,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        //String apikey = checkCredentials(authToken, wskey);
+        String userId = checkCredentials(authToken, wskey, true);
         validateRecordIds(ids);
-
-        // TODO for now we simply return the same number of recommendations as received
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
         return recommendEntity(type, base, id, ids.length, wskey, authToken);
     }
 
@@ -231,7 +229,7 @@ public class RecommendController {
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        String apikey = checkCredentials(authToken, wskey);
+        String apikey = checkCredentials(authToken, wskey, false);
 
         String recordId = "/" + datasetId + "/" + localId;
         Mono result = recommendService.getRecommendationsForRecord(recordId, pageSize,page, seed, authToken, apikey);
@@ -259,10 +257,9 @@ public class RecommendController {
             @Valid @RequestBody String[] ids,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        //String apikey = checkCredentials(authToken, wskey);
+        String userId = checkCredentials(authToken, wskey, true);
         validateRecordIds(ids);
-
-        // TODO for now we simply return the same number of recommendations as received
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
         return recommendRecord(datasetId, localId, ids.length, 0, null, wskey, authToken);
     }
 
@@ -282,31 +279,45 @@ public class RecommendController {
             @Valid @RequestBody String[] ids,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
-        //String apikey = checkCredentials(authToken, wskey);
+        String userId = checkCredentials(authToken, wskey, true);
         validateRecordIds(ids);
-
-        // TODO for now we simply return the same number of recommendations as received
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
         return recommendRecord(datasetId, localId, ids.length,0, null, wskey, authToken);
     }
 
     /**
-     * Check if we have a token and/or API key. If not we throw an error, otherwise we'll return the API key that we'll
-     * use for querying Search API
+     * Check if we have a token and/or API key. If not we throw an error, otherwise we'll return :
+     * 1) is getUserFromToken true - userId from the token (toke must be present for this,
+     *                          or else throw an error)
+     * 2) else apikey - from the token provided or wskey passed
      */
-    private String checkCredentials(String authToken, String wskey) throws RecommendException {
+    private String checkCredentials(String authToken, String wskey, boolean getUserFromToken) throws RecommendException {
         if (StringUtils.isBlank(wskey) && StringUtils.isBlank(authToken)) {
             throw new NoCredentialsException();
         }
-        // if we have a token, we use the API key embedded in that
-        String apikey;
-        if (StringUtils.isNotBlank(authToken)) {
-            apikey = TokenUtils.getApiKey(authToken);
-            LOG.debug("Using API key {} from token", apikey);
+        String apikeyOrUser;
+
+        // This will return the user from the authToken passed.
+        // Used for accept and reject recommendation methods
+        if (getUserFromToken) {
+            if(StringUtils.isNotBlank(authToken)) {
+                apikeyOrUser = TokenUtils.getUserId(authToken);
+                LOG.debug("User {} fetched from the token", apikeyOrUser);
+            } else {
+                throw new NoCredentialsException("User is not authorised to perform this action");
+            }
         } else {
-            apikey = wskey;
-            LOG.debug("Using received API key {}", apikey);
+            // get the API Key - if we have a token, we use the API key embedded in that
+            if (StringUtils.isNotBlank(authToken)) {
+                apikeyOrUser = TokenUtils.getApiKey(authToken);
+                LOG.debug("Using API key {} from token", apikeyOrUser);
+            } else {
+                apikeyOrUser = wskey;
+                LOG.debug("Using received API key {}", apikeyOrUser);
+            }
         }
-        return apikey;
+
+        return apikeyOrUser;
     }
 
     /**
@@ -314,7 +325,7 @@ public class RecommendController {
      */
     private void validateRecordIds(String [] ids) throws RecommendException {
         if (ids == null || ids.length == 0) {
-            throw new InvalidRecordIdException("no ids provided");
+            throw new InvalidRecordIdException("No ids provided");
         }
         for (String id : ids) {
             if (!isValidRecordId(id)) {

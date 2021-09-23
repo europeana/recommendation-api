@@ -23,6 +23,22 @@ public class EntityAPIUtils {
     private EntityAPIUtils() {
         // to hide implicit public one
     }
+
+
+    /**
+     * Build the entity id/url
+     *
+     * @param type
+     * @param id
+     * @return
+     */
+    public static String buildEntityId(String type, String id) {
+        StringBuilder entityId = new StringBuilder("http://data.europeana.eu");
+        entityId.append("/").append(type);
+        entityId.append("/base/").append(id);
+        return entityId.toString();
+    }
+
     /**
      * Generates Entity Api search query to fetch all skos:preflabel and skos:altlabel
      * for the given entity uri.
