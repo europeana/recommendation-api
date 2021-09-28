@@ -85,7 +85,6 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String apikey = checkCredentials(authToken, wskey, false);
-
         Mono result = recommendService.getRecommendationsForSet(setId, pageSize, page, seed, authToken, apikey);
         if (result == null) {
             return new ResponseEntity(new SearchAPIEmptyResponse(apikey), HttpStatus.OK);
@@ -109,7 +108,6 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String userId = checkCredentials(authToken, wskey, true);
-        System.out.println("user id :" + userId);
         validateRecordIds(ids);
         recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
         return recommendSet(setId, ids.length, 0, null,  wskey, authToken);

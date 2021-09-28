@@ -30,27 +30,12 @@ public final class TokenUtils {
      * @throws InvalidTokenException if we can't decode the token, or if it doesn't contain an apikey
      */
     public static String getApiKey(String token) throws InvalidTokenException {
-//        String tkn = getToken(token);
         return getClaimFromToken(getToken(token), API_KEY_CLAIM);
-
-////        if (token.toLowerCase(Locale.GERMAN).startsWith("bearer ")) {
-////            tkn = token.substring("Bearer ".length());
-////        }
-//        try {
-//            DecodedJWT jwt = JWT.decode(tkn);
-//            String result= jwt.getClaim(API_KEY_CLAIM).asString();
-//            if (StringUtils.isBlank(result)) {
-//                throw new InvalidTokenException("Token does not contain '" +API_KEY_CLAIM + "' field");
-//            }
-//            return result;
-//        } catch (JWTDecodeException e) {
-//            throw new InvalidTokenException("Error decoding authorization token", e);
-//        }
     }
 
     /**
      * Returns the encoded user Id from the token
-     * @param token
+     * @param token token passed
      * @return value of the encoded user
      * @throws InvalidTokenException if we can't decode the token, or if it doesn't contain an apikey
      */
