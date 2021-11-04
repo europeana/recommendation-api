@@ -87,9 +87,13 @@ public class RecommendService {
        String requestBody =getSubmitUserSignalRequest(ids, signalType, userId);
        String [] response = getRecommendations(s.toString(), requestBody, token, apikey).block();
        if (response == null || response.length == 0) {
-           LOG.info("Signal {} submitted successfully for {}", signalType.toUpperCase(Locale.ROOT), Arrays.toString(ids));
+           if (LOG.isDebugEnabled()) {
+               LOG.debug("Signal {} submitted successfully for {}", signalType.toUpperCase(Locale.ROOT), Arrays.toString(ids));
+           }
        } else {
-           LOG.error("Signal NOT {} submitted for {}", signalType.toUpperCase(Locale.ROOT), Arrays.toString(ids));
+           if (LOG.isDebugEnabled()) {
+               LOG.debug("No response from recommendation engine for {}", Arrays.toString(ids));
+           }
        }
     }
 
@@ -105,7 +109,7 @@ public class RecommendService {
         for(String id : ids) {
             request.add(new UserSignalRequest(userId, id, signalType));
         }
-        return serialiseUserSignalRequest(request);
+        return serialiseRequest(request);
     }
 
     public Mono getRecommendationsForRecord(String recordId, int pageSize, int page, String seed, String token, String apikey) {
@@ -186,7 +190,7 @@ public class RecommendService {
         getItems(request, setApiUrl.toString(), entityId);
 
         // serialise the request
-        return serialiseEntityRequest(request);
+        return serialiseRequest(request);
     }
 
     /**
@@ -254,31 +258,16 @@ public class RecommendService {
     }
 
     /**
-     * Serialises the EntityRecommendRequest
+     * Serialises the Recommendation Request
      * @param request
      * @return
      */
-    private String serialiseEntityRequest(EntityRecommendRequest request) {
+    private String serialiseRequest(Object request) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            LOG.error("Error serialising the Entity recommendation request. ", e);
-        }
-        return "";
-    }
-
-    /**
-     * Serialises the EntityRecommendRequest
-     * @param request
-     * @return
-     */
-    private String serialiseUserSignalRequest(List<UserSignalRequest> request) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(request);
-        } catch (JsonProcessingException e) {
-            LOG.error("Error serialising the Entity recommendation request. ", e);
+            LOG.error("Error serialising the {} recommendation request. ", request.getClass(),  e);
         }
         return "";
     }
