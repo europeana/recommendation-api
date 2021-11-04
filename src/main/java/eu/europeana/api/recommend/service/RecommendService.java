@@ -7,6 +7,7 @@ import eu.europeana.api.recommend.config.WebClients;
 import eu.europeana.api.recommend.exception.EntityNotFoundException;
 import eu.europeana.api.recommend.model.EntityRecommendRequest;
 import eu.europeana.api.recommend.model.Labels;
+import eu.europeana.api.recommend.model.UserSignalRequest;
 import eu.europeana.api.recommend.util.EntityAPIUtils;
 import eu.europeana.api.recommend.util.SearchAPIUtils;
 import eu.europeana.api.recommend.util.SetAPIUtils;
@@ -23,7 +24,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Service for requesting recommendations from the recommendation engine
@@ -71,6 +74,42 @@ public class RecommendService {
         return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
+    /**
+     * Submits the user signals to Engine
+     * @param ids the ids provided in the request
+     * @param signalType either accept OR reject
+     * @param userId the user-id extracted from token provided
+     * @param token
+     * @param apikey
+     */
+    public void submitUserSignals(String [] ids, String signalType,  String userId, String token, String apikey) {
+       StringBuilder s = new StringBuilder(config.getREngineEventsPath());
+       String requestBody =getSubmitUserSignalRequest(ids, signalType, userId);
+       String [] response = getRecommendations(s.toString(), requestBody, token, apikey).block();
+       if (response == null || response.length == 0) {
+           if (LOG.isDebugEnabled()) {
+               LOG.debug("Signal {} submitted successfully for {}", signalType.toUpperCase(Locale.ROOT), Arrays.toString(ids));
+           }
+       } else {
+           LOG.warn("No response from recommendation engine for {}", Arrays.toString(ids));
+       }
+    }
+
+    /**
+     * returns the request body for submit user Signals
+     * @param ids
+     * @param signalType accept OR reject
+     * @param userId
+     * @return
+     */
+    private String getSubmitUserSignalRequest(String [] ids, String signalType, String userId) {
+        List<UserSignalRequest> request = new ArrayList<>();
+        for(String id : ids) {
+            request.add(new UserSignalRequest(userId, id, signalType));
+        }
+        return serialiseRequest(request);
+    }
+
     public Mono getRecommendationsForRecord(String recordId, int pageSize, int page, String seed, String token, String apikey) {
         StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
                 .append("?item=").append(recordId)
@@ -99,10 +138,11 @@ public class RecommendService {
      * @param token
      * @param apikey
      * @return
+     * @throws EntityNotFoundException
      */
     public Mono getRecommendationsForEntity(String type, String id, int pageSize, String token, String apikey) throws EntityNotFoundException {
        // generate entity ID
-       String entityId = buildEntityId(type, id);
+       String entityId = EntityAPIUtils.buildEntityId(type, id);
        // create request body for entity api
        String requestBody = getEntityRecommendationRequest(entityId, apikey);
 
@@ -110,14 +150,13 @@ public class RecommendService {
               .append("/entity")
               .append("?size=").append(pageSize);
        String[] recommendedIds = getRecommendations(s.toString(), requestBody, token, apikey).block();
-        if (recommendedIds == null || recommendedIds.length == 0) {
-            LOG.warn("No recommended records for entity {}", entityId);
-            return null;
-        } else {
+       if (recommendedIds == null || recommendedIds.length == 0) {
+           LOG.warn("No recommended records for entity {}", entityId);
+           return null;
+       } else {
             LOG.debug("Recommend engine returned {} items for entity {}", recommendedIds.length, entityId);
-        }
-
-        return getSearchApiResponse(recommendedIds, pageSize, apikey);
+       }
+       return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
 
     /**
@@ -149,7 +188,7 @@ public class RecommendService {
         getItems(request, setApiUrl.toString(), entityId);
 
         // serialise the request
-        return serialiseEntityRequest(request);
+        return serialiseRequest(request);
     }
 
     /**
@@ -217,30 +256,16 @@ public class RecommendService {
     }
 
     /**
-     * Build the entity id/url
-     *
-     * @param type
-     * @param id
-     * @return
-     */
-    public String buildEntityId(String type, String id) {
-        StringBuilder entityId = new StringBuilder("http://data.europeana.eu");
-        entityId.append("/").append(type);
-        entityId.append("/base/").append(id);
-        return entityId.toString();
-    }
-
-    /**
-     * Serialises the EntityRecommendRequest
+     * Serialises the Recommendation Request
      * @param request
      * @return
      */
-    private String serialiseEntityRequest(EntityRecommendRequest request) {
+    private String serialiseRequest(Object request) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            LOG.error("Error serialising the Entity recommendation request. ", e);
+            LOG.error("Error serialising the {} recommendation request. ", request.getClass(),  e);
         }
         return "";
     }
@@ -256,6 +281,7 @@ public class RecommendService {
             return executeGetRequest(recommendQuery, authValue);
         }
     }
+
 
     private Mono<String[]> executeGetRequest(String recommendQuery, String authValue) {
         return rengineClient.get()

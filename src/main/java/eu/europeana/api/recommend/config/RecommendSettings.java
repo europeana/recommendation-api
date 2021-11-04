@@ -47,6 +47,9 @@ public class RecommendSettings {
     @Value("${recommend.engine.recommend.path}")
     private String rengineRecommendPath;
 
+    @Value("${recommend.engine.events.path}")
+    private String rengineEventsPath;
+
     @Value("${webclient.max.memsizemb:10}")
     private String maxInMemSizeMb;
 
@@ -70,6 +73,10 @@ public class RecommendSettings {
 
     public String getREngineRecommendPath() {
         return rengineRecommendPath;
+    }
+
+    public String getREngineEventsPath() {
+        return rengineEventsPath;
     }
 
     public String getEntityApiEndpoint() {
