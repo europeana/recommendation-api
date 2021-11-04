@@ -23,10 +23,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Service for requesting recommendations from the recommendation engine
@@ -154,7 +151,7 @@ public class RecommendService {
            LOG.warn("No recommended records for entity {}", entityId);
            return null;
        } else {
-            LOG.debug("Recommend engine returned {} items for entity {}", recommendedIds.length, entityId);
+            LOG.debug("Recommend engine returned {} items for entity {} : {}", recommendedIds.length, entityId, recommendedIds);
        }
        return getSearchApiResponse(recommendedIds, pageSize, apikey);
     }
@@ -200,9 +197,21 @@ public class RecommendService {
      */
     private void getLabels(EntityRecommendRequest request, String entityUrl, String entityId) throws EntityNotFoundException {
         try {
-            JSONObject jsonObject = new JSONObject(getEntityApiSearchResponse(entityUrl));
+            String response = entityApiClient.get()
+                    .uri(entityUrl)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            JSONObject jsonObject = new JSONObject(response);
             checkIfEntityExists(jsonObject, entityId, false);
             List<String> extractedLabels = EntityAPIUtils.extractLabels(jsonObject);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} labels for entity {}", extractedLabels.size(), entityId);
+            }
+
             List<Labels> labels = new ArrayList<>();
             if (!extractedLabels.isEmpty()) {
                 for (String label : extractedLabels) {
@@ -227,9 +236,20 @@ public class RecommendService {
      */
     private void getItems(EntityRecommendRequest request, String setApiUrl, String entityId) throws EntityNotFoundException {
         try {
-            JSONObject jsonObject = new JSONObject(getSetApiSearchResponse(setApiUrl));
+            String response = setApiClient.get()
+                    .uri(setApiUrl)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            JSONObject jsonObject = new JSONObject(response);
             checkIfEntityExists(jsonObject, entityId, true);
             List<String> items= SetAPIUtils.extractItems(jsonObject);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} results from Set API", items.size());
+            }
+
             if (!items.isEmpty()) {
                 request.setItems(items.toArray(new String[0]));
             } else {
@@ -293,6 +313,9 @@ public class RecommendService {
     }
 
     private Mono<String[]> executePostRequest(String recommendQuery, String jsonBody, String authValue) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("  POST Body = {}", jsonBody);
+        }
         return rengineClient.post()
                 .uri(recommendQuery)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -302,33 +325,29 @@ public class RecommendService {
                 .bodyToMono(String[].class);
     }
 
-    private String getEntityApiSearchResponse(String url) {
-       return entityApiClient.get()
-                .uri(url)
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-    }
-
-    private String  getSetApiSearchResponse(String url) {
-        return setApiClient.get()
-                .uri(url)
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-    }
-
     /**
      * We use reactive (non-blocking) WebClient to retrieve data from Search API
      */
-    private Mono<Object> getSearchApiResponse(String[] recordIds, int maxResults, String wskey) {
+    private Mono getSearchApiResponse(String[] recordIds, int maxResults, String wskey) {
         String query = SearchAPIUtils.generateSearchQuery(recordIds, maxResults, wskey);
-        return searchApiClient.get()
+        Mono<Object> response = searchApiClient.get()
                 .uri(query)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
                 .bodyToMono(Object.class);
+
+        if (LOG.isDebugEnabled()) {
+            // TODO WARNING since we do a block here this will cause us to do the request to Search API twice, once here
+            // and once in the controller where the other block() is
+            LinkedHashMap map = (LinkedHashMap) response.block();
+            Integer nrResults = (Integer) map.get("totalResults");
+            if (nrResults != recordIds.length) {
+                LOG.warn("{} results from Search API, expected {}", nrResults, recordIds.length);
+            } else {
+                LOG.debug("{} results from Search API", nrResults);
+            }
+        }
+
+        return response;
     }
 }

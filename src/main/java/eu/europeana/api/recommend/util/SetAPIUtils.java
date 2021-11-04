@@ -7,7 +7,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import java.util.*;
 
-public class SetAPIUtils {
+public final class SetAPIUtils {
 
     private static final String ITEMS_FIELD = "items";
 
@@ -42,10 +42,10 @@ public class SetAPIUtils {
     public static List<String> extractItems(JSONObject jsonObject) throws JSONException {
         List<String> items = new ArrayList<>();
         JSONArray setsList = jsonObject.getJSONArray(ITEMS_FIELD);
-        for(int i =0; i < setsList.length(); i++) {
+        for (int i = 0; i < setsList.length(); i++) {
             JSONObject set = (JSONObject) setsList.get(i);
             JSONArray itemList =  set.getJSONArray(ITEMS_FIELD);
-            for(int j =0; j < itemList.length(); j++) {
+            for (int j = 0; j < itemList.length(); j++) {
                 items.add(StringUtils.substringAfter((String) itemList.get(j), "http://data.europeana.eu/item"));
             }
         }
