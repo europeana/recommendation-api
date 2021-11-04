@@ -91,9 +91,7 @@ public class RecommendService {
                LOG.debug("Signal {} submitted successfully for {}", signalType.toUpperCase(Locale.ROOT), Arrays.toString(ids));
            }
        } else {
-           if (LOG.isDebugEnabled()) {
-               LOG.debug("No response from recommendation engine for {}", Arrays.toString(ids));
-           }
+           LOG.warn("No response from recommendation engine for {}", Arrays.toString(ids));
        }
     }
 

@@ -99,9 +99,6 @@ public class RecommendController {
     public ResponseEntity acceptSet(
             @PathVariable(value = "setId")
                 @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
-            @RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-                @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-                @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @Valid @RequestBody String[] ids,
@@ -118,12 +115,9 @@ public class RecommendController {
             consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity rejectSet(
             @PathVariable(value = "setId")
-            @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
-            @RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-            @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-            @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
+                @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
             @RequestParam(value = "wskey", required = false)
-            @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+                @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @Valid @RequestBody String[] ids,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
@@ -169,9 +163,6 @@ public class RecommendController {
                 @Pattern(regexp = ENTITY_BASE_REGEX, message = INVALID_ENTITY_BASE_MESSAGE) String base,
             @PathVariable(value = "id")
                 @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
-            @RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-                @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-                @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @Valid @RequestBody String[] ids,
@@ -193,9 +184,6 @@ public class RecommendController {
                 @Pattern(regexp = ENTITY_BASE_REGEX, message = INVALID_ENTITY_BASE_MESSAGE) String base,
             @PathVariable(value = "id")
                 @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
-            @RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-                @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-                @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @Valid @RequestBody String[] ids,
@@ -247,9 +235,6 @@ public class RecommendController {
                 @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
             @PathVariable(value = "localId")
                 @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
-            @RequestParam (value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-                @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-                @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @Valid @RequestBody String[] ids,
@@ -269,9 +254,6 @@ public class RecommendController {
                 @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
             @PathVariable(value = "localId")
                 @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
-            @RequestParam (value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-                @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-                @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
             @RequestParam(value = "wskey", required = false)
                 @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
             @Valid @RequestBody String[] ids,
