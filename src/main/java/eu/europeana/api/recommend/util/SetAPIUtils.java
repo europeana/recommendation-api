@@ -44,9 +44,12 @@ public final class SetAPIUtils {
         JSONArray setsList = jsonObject.getJSONArray(ITEMS_FIELD);
         for (int i = 0; i < setsList.length(); i++) {
             JSONObject set = (JSONObject) setsList.get(i);
-            JSONArray itemList =  set.getJSONArray(ITEMS_FIELD);
-            for (int j = 0; j < itemList.length(); j++) {
-                items.add(StringUtils.substringAfter((String) itemList.get(j), "http://data.europeana.eu/item"));
+            // if items are available for that entity set
+            if (set.has(ITEMS_FIELD)) {
+                JSONArray itemList =  set.getJSONArray(ITEMS_FIELD);
+                for (int j = 0; j < itemList.length(); j++) {
+                    items.add(StringUtils.substringAfter((String) itemList.get(j), "http://data.europeana.eu/item"));
+                }
             }
         }
         return items;
