@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Srishti Singh
  * Created on 13 Sep 2021
  */
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class EntityNotFoundException extends RecommendException{
 
     public EntityNotFoundException(String msg, Throwable t) {
