@@ -3,6 +3,7 @@ package eu.europeana.api.recommend.util;
 public class SearchAPIUtils {
 
     private static final String SOLR_ID_FIELD = "europeana_id";
+    public static final String TOTAL_RESULTS = "totalResults";
 
     private SearchAPIUtils() {
         // to hide implicit public one

@@ -182,7 +182,7 @@ public class RecommendService {
         // fetch Entity Set items from set api
         StringBuilder setApiUrl = new StringBuilder(config.getSetApiEndpoint()).
                 append(SetAPIUtils.setApiSearchQuery(entityId, config.getSetApiPageSize(), apikey));
-        getItems(request, setApiUrl.toString(), entityId);
+        getItems(request, setApiUrl.toString());
 
         // serialise the request
         return serialiseRequest(request);
@@ -237,7 +237,7 @@ public class RecommendService {
      * @param request
      * @param setApiUrl
      */
-    private void getItems(EntityRecommendRequest request, String setApiUrl, String entityId) {
+    private void getItems(EntityRecommendRequest request, String setApiUrl) {
         try {
             String response = setApiClient.get()
                     .uri(setApiUrl)
@@ -338,7 +338,7 @@ public class RecommendService {
             // TODO WARNING since we do a block here this will cause us to do the request to Search API twice, once here
             // and once in the controller where the other block() is
             LinkedHashMap map = (LinkedHashMap) response.block();
-            Integer nrResults = (Integer) map.get("totalResults");
+            Integer nrResults = (Integer) map.get(SearchAPIUtils.TOTAL_RESULTS);
             if (nrResults != recordIds.length) {
                 LOG.warn("{} results from Search API, expected {}", nrResults, recordIds.length);
             } else {
