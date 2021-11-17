@@ -205,7 +205,10 @@ public class RecommendService {
                     .block();
 
             JSONObject jsonObject = new JSONObject(response);
-            checkIfEntityExists(jsonObject, entityId, false);
+            // if entity doesn't exist, throw EntityNotFoundException exception
+            if (!checkIfEntityExists(jsonObject)) {
+                throw new EntityNotFoundException("Entity " + entityId + " not found.");
+            }
             List<String> extractedLabels = EntityAPIUtils.extractLabels(jsonObject);
 
             if (LOG.isDebugEnabled()) {
@@ -234,7 +237,7 @@ public class RecommendService {
      * @param request
      * @param setApiUrl
      */
-    private void getItems(EntityRecommendRequest request, String setApiUrl, String entityId) throws EntityNotFoundException {
+    private void getItems(EntityRecommendRequest request, String setApiUrl, String entityId) {
         try {
             String response = setApiClient.get()
                     .uri(setApiUrl)
@@ -243,17 +246,14 @@ public class RecommendService {
                     .bodyToMono(String.class)
                     .block();
             JSONObject jsonObject = new JSONObject(response);
-            checkIfEntityExists(jsonObject, entityId, true);
-            List<String> items= SetAPIUtils.extractItems(jsonObject);
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} results from Set API", items.size());
-            }
-
-            if (!items.isEmpty()) {
-                request.setItems(items.toArray(new String[0]));
-            } else {
-                request.setItems(new String[]{""});
+            if (checkIfEntityExists(jsonObject)) {
+                List<String> items= SetAPIUtils.extractItems(jsonObject);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} results from Set API", items.size());
+                }
+                if (!items.isEmpty()) {
+                    request.setItems(items.toArray(new String[0]));
+                }
             }
         } catch (JSONException e) {
             LOG.error("Error parsing set api response for url {}. {}", setApiUrl, e);
@@ -264,15 +264,13 @@ public class RecommendService {
      * Will check in json if total value is not 0 in the ResultPage
      *
      * @param jsonObject
-     * @param entityUri
-     * @throws EntityNotFoundException
      * @throws JSONException
      */
-    private void checkIfEntityExists(JSONObject jsonObject, String entityUri, boolean entitySet) throws EntityNotFoundException, JSONException {
+    private boolean checkIfEntityExists(JSONObject jsonObject) throws JSONException {
         if (Integer.parseInt(String.valueOf(jsonObject.get(EntityAPIUtils.TOTAL))) == 0) {
-            String msg = entitySet ? "Entity Set for " : "Entity " ;
-            throw new EntityNotFoundException(msg + entityUri + " not found.");
+            return false;
         }
+        return true;
     }
 
     /**
