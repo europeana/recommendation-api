@@ -1,7 +1,10 @@
 package eu.europeana.api.recommend.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EntityRecommendRequest {
 
     private List<Labels> labels;
