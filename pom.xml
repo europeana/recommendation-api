@@ -5,16 +5,16 @@
     <parent>
         <groupId>eu.europeana</groupId>
         <artifactId>europeana-parent-pom</artifactId>
-        <version>2.1</version>
+        <version>2.2</version>
     </parent>
 
     <groupId>eu.europeana.api</groupId>
     <artifactId>recommend</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.3.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>recommendation-api</name>
-    <description>API for recommending CHOs or sets of CHOs</description>
+    <description>API for recommending CHOs, sets of CHOs or entities</description>
 
     <properties>
         <java.version>11</java.version>
