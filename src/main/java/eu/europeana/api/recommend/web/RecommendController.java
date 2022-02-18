@@ -105,9 +105,8 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String userId = checkCredentials(authToken, wskey, true);
-        // validateRecordIds(ids);
-        // Actual storing accept/reject is commented out for the time being (until we have a clustered or central database)
-        // recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
+        validateRecordIds(ids);
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
         return recommendSet(setId, ids.length, 0, null,  wskey, authToken);
     }
 
@@ -123,9 +122,8 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String userId = checkCredentials(authToken, wskey, true);
-        // validateRecordIds(ids);
-        // Actual storing accept/reject is commented out for the time being (until we have a clustered or central database)
-        // recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
+        validateRecordIds(ids);
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
         return recommendSet(setId, ids.length, 0, null,  wskey, authToken);
     }
 
@@ -171,9 +169,8 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String userId = checkCredentials(authToken, wskey, true);
-        // validateRecordIds(ids);
-        // Actual storing accept/reject is commented out for the time being (until we have a clustered or central database)
-        // recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
+        validateRecordIds(ids);
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
         return recommendEntity(type, base, id, ids.length, wskey, authToken);
     }
 
@@ -193,9 +190,8 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String userId = checkCredentials(authToken, wskey, true);
-        // validateRecordIds(ids);
-        // Actual storing accept/reject is commented out for the time being (until we have a clustered or central database)
-        // recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
+        validateRecordIds(ids);
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
         return recommendEntity(type, base, id, ids.length, wskey, authToken);
     }
 
@@ -245,9 +241,8 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String userId = checkCredentials(authToken, wskey, true);
-        // validateRecordIds(ids);
-        // Actual storing accept/reject is commented out for the time being (until we have a clustered or central database)
-        // recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
+        validateRecordIds(ids);
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId, authToken, wskey);
         return recommendRecord(datasetId, localId, ids.length, 0, null, wskey, authToken);
     }
 
@@ -265,9 +260,8 @@ public class RecommendController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken)
             throws RecommendException {
         String userId = checkCredentials(authToken, wskey, true);
-        // validateRecordIds(ids);
-        // Actual storing accept/reject is commented out for the time being (until we have a clustered or central database)
-        // recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
+        validateRecordIds(ids);
+        recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId, authToken, wskey);
         return recommendRecord(datasetId, localId, ids.length,0, null, wskey, authToken);
     }
 
