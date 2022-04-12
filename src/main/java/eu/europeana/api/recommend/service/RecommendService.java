@@ -81,14 +81,16 @@ public class RecommendService {
      */
     public void submitUserSignals(String [] ids, String signalType,  String userId, String token, String apikey) {
        StringBuilder s = new StringBuilder(config.getREngineEventsPath());
-       String requestBody =getSubmitUserSignalRequest(ids, signalType, userId);
+       String requestBody = getSubmitUserSignalRequest(ids, signalType, userId);
        String [] response = getRecommendations(s.toString(), requestBody, token, apikey).block();
        if (response == null || response.length == 0) {
            if (LOG.isDebugEnabled()) {
                LOG.debug("Signal {} submitted successfully for {}", signalType.toUpperCase(Locale.ROOT), Arrays.toString(ids));
            }
        } else {
-           LOG.warn("No response from recommendation engine for {}", Arrays.toString(ids));
+           if (LOG.isWarnEnabled()) {
+               LOG.warn("No response from recommendation engine for {}", Arrays.toString(ids));
+           }
        }
     }
 
@@ -267,10 +269,7 @@ public class RecommendService {
      * @throws JSONException
      */
     private boolean checkIfEntityExists(JSONObject jsonObject) throws JSONException {
-        if (Integer.parseInt(String.valueOf(jsonObject.get(EntityAPIUtils.TOTAL))) == 0) {
-            return false;
-        }
-        return true;
+        return Integer.parseInt(String.valueOf(jsonObject.get(EntityAPIUtils.TOTAL))) != 0;
     }
 
     /**
@@ -338,11 +337,13 @@ public class RecommendService {
             // TODO WARNING since we do a block here this will cause us to do the request to Search API twice, once here
             // and once in the controller where the other block() is
             LinkedHashMap map = (LinkedHashMap) response.block();
-            Integer nrResults = (Integer) map.get(SearchAPIUtils.TOTAL_RESULTS);
-            if (nrResults != recordIds.length) {
-                LOG.warn("{} results from Search API, expected {}", nrResults, recordIds.length);
-            } else {
-                LOG.debug("{} results from Search API", nrResults);
+            if (map != null) {
+                Integer nrResults = (Integer) map.get(SearchAPIUtils.TOTAL_RESULTS);
+                if (nrResults != recordIds.length) {
+                    LOG.warn("{} results from Search API, expected {}", nrResults, recordIds.length);
+                } else {
+                    LOG.debug("{} results from Search API", nrResults);
+                }
             }
         }
 
