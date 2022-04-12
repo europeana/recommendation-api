@@ -30,6 +30,11 @@ public class GlobalExceptionHandler {
 
     private static final Logger LOG = LogManager.getLogger(GlobalExceptionHandler.class);
 
+    private static final String FAILING_RECORD_API = "Record API";
+    private static final String FAILING_SET_API = "Set API";
+    private static final String FAILING_ENTITY_API = "Entity API";
+    private static final String FAILING_RECOMMENDATION_ENGINE = "Recommendation engine";
+
     private static final ObjectMapper JSON_ERROR_TO_OBJECT = new ObjectMapper();
     static {
         JSON_ERROR_TO_OBJECT.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -93,10 +98,10 @@ public class GlobalExceptionHandler {
     public void handleWebClientResponseException(WebClientResponseException ex, HttpServletResponse response) throws IOException {
         LOG.error("Error from backend: {} {} (Message = {})", ex.getRawStatusCode(), ex.getStatusText(), ex.getMessage());
 
-        String errorMsg;
-        // Check if error was from Search API or other system
-        if (isRequestFromSearchAPI(ex)) {
-            errorMsg  = "Error from backend API: ";
+        String failingApi = getFailingAPI(ex);
+        String errorMsg = "Error from " + failingApi + ": ";
+        // Check if error was from Search API or other system because we parse that error to get more detailed info
+        if (FAILING_RECORD_API.equals(failingApi)) {
             // Decode Search API message if available
             if (StringUtils.isNotBlank(ex.getResponseBodyAsString())) {
                 try {
@@ -110,7 +115,7 @@ public class GlobalExceptionHandler {
                 errorMsg = errorMsg + ex.getMessage();
             }
         } else {
-            errorMsg = "Error from backend engine: " + ex.getMessage();
+            errorMsg = errorMsg + ex.getMessage();
         }
 
         // For all 500 responses we return a 502 ourselves
@@ -124,11 +129,22 @@ public class GlobalExceptionHandler {
         }
     }
 
-    private boolean isRequestFromSearchAPI(WebClientResponseException ex) {
-        if (ex.getRequest() != null) {
-            return config.getSearchApiHost().contains(ex.getRequest().getURI().getHost());
+    @SuppressWarnings("java:S2259") // we get a false possible nullpointer warning in SQ here
+    private String getFailingAPI(WebClientResponseException ex) {
+        String result = "unknown service";
+        if (ex != null && ex.getRequest() != null) {
+            String request = ex.getRequest().getURI().toString();
+            if (request.startsWith(config.getSearchApiEndpoint())) {
+                result = FAILING_RECORD_API;
+            } else if (request.startsWith(config.getEntityApiEndpoint())) {
+                result = FAILING_ENTITY_API;
+            } else if (request.startsWith(config.getSetApiEndpoint())) {
+                result = FAILING_SET_API;
+            } else if (request.startsWith(config.getREngineHost())) {
+                result = FAILING_RECOMMENDATION_ENGINE;
+            }
         }
-        return false;
+        return result;
     }
 
     private String filterOutSensitiveInformation(String originalMessage) {
