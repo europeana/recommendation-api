@@ -1,5 +1,5 @@
 # Settings for local testing
-server.port: 8085
+server.port: 8088
 
 server:
   error:
@@ -9,5 +9,22 @@ server:
 
   compression:
     enabled: true
+    min-response-size: 2038
     mime-types: application/json, application/ld+json, application/xml, text/html, text/xml, text/plain
-    min-response-size: 2048
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info
+
+  info:
+    env:
+      enabled: true
+
+# Creates a redirect from /console to /swagger-ui/index.html
+springdoc:
+  swagger-ui:
+    path: /console
+  # Don't include Error controller in API commons
+  paths-to-exclude: /error

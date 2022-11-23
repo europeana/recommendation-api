@@ -2,6 +2,7 @@ package eu.europeana.api.recommend;
 
 import eu.europeana.api.recommend.exception.RecommendException;
 import eu.europeana.api.recommend.web.RecommendController;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Integration test to see if we can send and retrieve requests to the recommendation engine properly
  * Note that this will only work if an recommendation engine endpoint is defined in the properties
  */
+@Disabled
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RecommendEngineIT {
 

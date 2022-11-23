@@ -12,17 +12,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * JUnit test to check if Swagger is setup fine
+ * JUnit test to check if OpenAPI and SpringDoc is setup okay
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-public class SwaggerConfigTest {
+public class SpringDocConfigTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     /**
-     * Test if the api-docs endpoint is available and if CORS is enabled for it
+     * Test if the /v3/api-docs endpoint is available and if CORS is enabled for it
      */
     @Test
     public void testApiDocEndpoint() throws Exception {
@@ -31,7 +31,6 @@ public class SwaggerConfigTest {
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*"))
-
                 // check if api info is loaded properly and contains minimally contact email and license information
                 .andExpect(jsonPath("$.info.contact.email").exists())
                 .andExpect(jsonPath("$.info.contact.email").value("api@europeana.eu"))
@@ -40,12 +39,12 @@ public class SwaggerConfigTest {
     }
 
     /**
-     * Test if Swagger UI is available
+     * Test if UI is available via /console path
      */
     @Test
-    public void testSwaggerUI() throws Exception {
-        mockMvc.perform(get("/swagger-ui/"))
-                .andExpect(status().is(HttpStatus.OK.value()));
+    public void testConsole() throws Exception {
+        mockMvc.perform(get("/console"))
+                .andExpect(status().is(HttpStatus.FOUND.value()));
     }
 
 }
