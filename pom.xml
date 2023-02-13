@@ -7,7 +7,7 @@
     <parent>
         <groupId>eu.europeana</groupId>
         <artifactId>europeana-parent-pom</artifactId>
-        <version>2.2</version>
+        <version>2.4</version>
     </parent>
 
     <groupId>eu.europeana.api</groupId>
@@ -15,7 +15,7 @@
     <version>0.3.2-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>recommendation-api</name>
+    <name>Recommendation API</name>
     <description>API for recommending CHOs, sets of CHOs or entities</description>
 
     <properties>
