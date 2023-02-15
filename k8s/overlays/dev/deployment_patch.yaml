@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommend-api-deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: recommend-api
+          # required to use local image
+          imagePullPolicy: Never
