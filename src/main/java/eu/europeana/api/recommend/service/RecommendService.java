@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,9 @@ public class RecommendService {
     private WebClient setApiClient;
     private WebClient rengineClient;
 
+    @Value("${test.apikey.only:false}")
+    private Boolean testApikeyOnly;
+
     public RecommendService(RecommendSettings config, WebClients webClients) {
         this.config = config;
         this.searchApiClient = webClients.getSearchApiClient();
@@ -58,6 +62,10 @@ public class RecommendService {
                 .append("&skip=").append(pageSize * page);
         if (seed != null) {
             s.append("&seed=").append(seed);
+        }
+        // tmp add session_id if there's no token for testing purposes
+        if (testApikeyOnly && token == null) {
+            s.append("&session_id=test");
         }
 
         String[] recommendedIds = getRecommendations(s.toString(), null, token, apikey).block();
@@ -117,6 +125,11 @@ public class RecommendService {
         if (seed != null) {
             s.append("&seed=").append(seed);
         }
+        // tmp add session_id if there's no token for testing purposes
+        if (testApikeyOnly && token == null) {
+            s.append("&session_id=test");
+        }
+
         String[] recommendedIds = getRecommendations(s.toString(), null, token, apikey).block();
         if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
@@ -148,6 +161,11 @@ public class RecommendService {
        StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
               .append("/entity")
               .append("?size=").append(pageSize);
+        // tmp add session_id if there's no token for testing purposes
+        if (testApikeyOnly  && token == null) {
+            s.append("&session_id=test");
+        }
+
        String[] recommendedIds = getRecommendations(s.toString(), requestBody, token, apikey).block();
        if (recommendedIds == null || recommendedIds.length == 0) {
            LOG.warn("No recommended records for entity {}", entityId);
