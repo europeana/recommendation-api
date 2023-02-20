@@ -53,6 +53,7 @@ public class RecommendService {
         this.entityApiClient = webClients.getEntityApiClient();
         this.setApiClient = webClients.getSetApiClient();
         this.rengineClient = webClients.getRecommendEngineClient();
+        LOG.info("Allow API keys only = {}", testApikeyOnly);
     }
 
     public Mono getRecommendationsForSet(String setId, int pageSize, int page, String seed, String token, String apikey) {
