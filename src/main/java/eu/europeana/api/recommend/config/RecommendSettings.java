@@ -1,8 +1,8 @@
 package eu.europeana.api.recommend.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -53,6 +53,9 @@ public class RecommendSettings {
     @Value("${webclient.max.memsizemb:10}")
     private String maxInMemSizeMb;
 
+    @Value("${test.apikey.only:false}")
+    private Boolean testApikeyOnly;
+
     /**
      * @return the host name part of the configured Search API
      */
@@ -100,6 +103,14 @@ public class RecommendSettings {
             }
             return null;
         }
+    }
+
+    /**
+     *
+     * @return true if sending only an apikey (without token) is allowed for testing purposes.
+     */
+    public Boolean getTestApikeyOnly() {
+        return this.testApikeyOnly;
     }
 
     @PostConstruct

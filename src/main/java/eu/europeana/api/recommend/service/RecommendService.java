@@ -44,8 +44,6 @@ public class RecommendService {
     private WebClient setApiClient;
     private WebClient rengineClient;
 
-    @Value("${test.apikey.only:false}")
-    private Boolean testApikeyOnly;
 
     public RecommendService(RecommendSettings config, WebClients webClients) {
         this.config = config;
@@ -53,7 +51,7 @@ public class RecommendService {
         this.entityApiClient = webClients.getEntityApiClient();
         this.setApiClient = webClients.getSetApiClient();
         this.rengineClient = webClients.getRecommendEngineClient();
-        LOG.info("Allow API keys only = {}", testApikeyOnly);
+        LOG.info("Allow API keys only = {}", config.getTestApikeyOnly());
     }
 
     public Mono getRecommendationsForSet(String setId, int pageSize, int page, String seed, String token, String apikey) {
@@ -65,7 +63,7 @@ public class RecommendService {
             s.append("&seed=").append(seed);
         }
         // tmp add session_id if there's no token for testing purposes
-        if (testApikeyOnly && token == null) {
+        if (config.getTestApikeyOnly() && token == null) {
             s.append("&session_id=test");
         }
 
@@ -127,7 +125,7 @@ public class RecommendService {
             s.append("&seed=").append(seed);
         }
         // tmp add session_id if there's no token for testing purposes
-        if (testApikeyOnly && token == null) {
+        if (config.getTestApikeyOnly() && token == null) {
             s.append("&session_id=test");
         }
 
@@ -163,7 +161,7 @@ public class RecommendService {
               .append("/entity")
               .append("?size=").append(pageSize);
         // tmp add session_id if there's no token for testing purposes
-        if (testApikeyOnly  && token == null) {
+        if (config.getTestApikeyOnly()  && token == null) {
             s.append("&session_id=test");
         }
 
