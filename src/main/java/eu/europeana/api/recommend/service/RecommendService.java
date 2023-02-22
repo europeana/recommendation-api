@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -43,12 +44,14 @@ public class RecommendService {
     private WebClient setApiClient;
     private WebClient rengineClient;
 
+
     public RecommendService(RecommendSettings config, WebClients webClients) {
         this.config = config;
         this.searchApiClient = webClients.getSearchApiClient();
         this.entityApiClient = webClients.getEntityApiClient();
         this.setApiClient = webClients.getSetApiClient();
         this.rengineClient = webClients.getRecommendEngineClient();
+        LOG.info("Allow API keys only = {}", config.getTestApikeyOnly());
     }
 
     public Mono getRecommendationsForSet(String setId, int pageSize, int page, String seed, String token, String apikey) {
@@ -58,6 +61,10 @@ public class RecommendService {
                 .append("&skip=").append(pageSize * page);
         if (seed != null) {
             s.append("&seed=").append(seed);
+        }
+        // tmp add session_id if there's no token for testing purposes
+        if (config.getTestApikeyOnly() && token == null) {
+            s.append("&session_id=test");
         }
 
         String[] recommendedIds = getRecommendations(s.toString(), null, token, apikey).block();
@@ -117,6 +124,11 @@ public class RecommendService {
         if (seed != null) {
             s.append("&seed=").append(seed);
         }
+        // tmp add session_id if there's no token for testing purposes
+        if (config.getTestApikeyOnly() && token == null) {
+            s.append("&session_id=test");
+        }
+
         String[] recommendedIds = getRecommendations(s.toString(), null, token, apikey).block();
         if (recommendedIds == null || recommendedIds.length == 0) {
             LOG.warn("No recommended records for record {}", recordId);
@@ -148,6 +160,11 @@ public class RecommendService {
        StringBuilder s = new StringBuilder(config.getREngineRecommendPath())
               .append("/entity")
               .append("?size=").append(pageSize);
+        // tmp add session_id if there's no token for testing purposes
+        if (config.getTestApikeyOnly()  && token == null) {
+            s.append("&session_id=test");
+        }
+
        String[] recommendedIds = getRecommendations(s.toString(), requestBody, token, apikey).block();
        if (recommendedIds == null || recommendedIds.length == 0) {
            LOG.warn("No recommended records for entity {}", entityId);
