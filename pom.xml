@@ -10,7 +10,7 @@
 
     <groupId>eu.europeana.api</groupId>
     <artifactId>recommend</artifactId>
-    <version>0.3.2</version>
+    <version>0.3.3-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>Recommendation API</name>
