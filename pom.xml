@@ -10,20 +10,22 @@
 
     <groupId>eu.europeana.api</groupId>
     <artifactId>recommend</artifactId>
-    <version>0.3.3-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>Recommendation API</name>
     <description>API for recommending CHOs, sets of CHOs or entities</description>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <spring-boot.version>2.6.13</spring-boot.version>
-        <springdoc.version>1.6.13</springdoc.version>
-        <commons.lang3.version>3.12.0</commons.lang3.version>
+        <spring-boot.version>2.7.14</spring-boot.version>
+        <springdoc.version>1.7.0</springdoc.version>
+        <commons.lang3.version>3.13.0</commons.lang3.version>
+
+        <milvus.version>2.2.12</milvus.version>
     </properties>
 
     <dependencyManagement>
@@ -74,11 +76,18 @@
             <version>${springdoc.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.milvus/milvus-sdk-java -->
+        <dependency>
+            <groupId>io.milvus</groupId>
+            <artifactId>milvus-sdk-java</artifactId>
+            <version>${milvus.version}</version>
+        </dependency>
+
         <!-- For decoding JWT tokens -->
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>3.10.3</version>
+            <version>4.4.0</version>
         </dependency>
 
         <dependency>
@@ -98,7 +107,7 @@
         <dependency>
             <groupId>org.codehaus.jettison</groupId>
             <artifactId>jettison</artifactId>
-            <version>1.4.1</version>
+            <version>1.5.4</version>
         </dependency>
 
         <!-- Test dependencies -->
@@ -116,7 +125,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>3.2.4</version>
+            <version>3.12.4</version>
             <scope>test</scope>
         </dependency>
 
@@ -132,7 +141,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>3.1.2</version>
             </plugin>
 
             <plugin>
@@ -140,8 +149,9 @@
                      To skip (e.g. during debugging) use 'mvn clean package')-->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>7.4.4</version>
+                <version>8.3.1</version>
                 <configuration>
+                    <knownExploitedUrl>http://artifactory.eanadev.org/artifactory/ext-release-local/gov/cisa/www/known_exploited_vulnerabilities.json</knownExploitedUrl>
                     <failBuildOnCVSS>8</failBuildOnCVSS>
                     <suppressionFiles>
                         <suppressionFile>owasp-suppress.xml</suppressionFile>

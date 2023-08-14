@@ -351,8 +351,8 @@ public class RecommendService {
                 .bodyToMono(Object.class);
 
         if (LOG.isDebugEnabled()) {
-            // TODO WARNING since we do a block here this will cause us to do the request to Search API twice, once here
-            // and once in the controller where the other block() is
+            // TODO WARNING since we do a block here when DEBUG is enabled this will cause us to do the request to
+            //  Search API twice, once here and once in the controller where the other block() is
             LinkedHashMap map = (LinkedHashMap) response.block();
             if (map != null) {
                 Integer nrResults = (Integer) map.get(SearchAPIUtils.TOTAL_RESULTS);
