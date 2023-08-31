@@ -11,15 +11,28 @@ server:
     enabled: true
     min-response-size: 2038
     mime-types: application/json, application/ld+json, application/xml, text/html, text/xml, text/plain
+  forward-headers-strategy: framework # this is to make sure SpringDoc uses https when used over https connections
 
 management:
   endpoints:
     web:
       exposure:
-        include: info
+        include: info, health
 
   info:
     env:
+      enabled: true
+
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
       enabled: true
 
 # Creates a redirect from /console to /swagger-ui/index.html
@@ -28,3 +41,4 @@ springdoc:
     path: /console
   # Don't include Error controller in API commons
   paths-to-exclude: /error
+

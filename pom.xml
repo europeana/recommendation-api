@@ -25,7 +25,8 @@
         <springdoc.version>1.7.0</springdoc.version>
         <commons.lang3.version>3.13.0</commons.lang3.version>
 
-        <milvus.version>2.2.12</milvus.version>
+        <!-- We import the recommendations updater so we are sure the used Milvus version and field names are in sync -->
+        <recommendations-updater.version>1.1.0-SNAPSHOT</recommendations-updater.version>
     </properties>
 
     <dependencyManagement>
@@ -76,11 +77,19 @@
             <version>${springdoc.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/io.milvus/milvus-sdk-java -->
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
+        <!-- Added to prevent Milvus from using commons-text-1.6 with CVE-2022-42889 -->
         <dependency>
-            <groupId>io.milvus</groupId>
-            <artifactId>milvus-sdk-java</artifactId>
-            <version>${milvus.version}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
+        <!-- Import common functionality (Milvus and db constants)-->
+        <dependency>
+            <groupId>eu.europeana.api</groupId>
+            <artifactId>recommendations-common</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
         </dependency>
 
         <!-- For decoding JWT tokens -->

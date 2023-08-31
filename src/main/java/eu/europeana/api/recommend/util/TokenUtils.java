@@ -1,4 +1,4 @@
-package eu.europeana.api.recommend.service;
+package eu.europeana.api.recommend.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;

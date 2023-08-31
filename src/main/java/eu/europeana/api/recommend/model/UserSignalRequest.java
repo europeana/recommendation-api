@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import eu.europeana.api.recommend.util.RecommendationConstants;
 
+/**
+ * @deprecated
+ */
+@Deprecated(since="Aug 2023")
 @JsonPropertyOrder({RecommendationConstants.SESSION_ID, RecommendationConstants.TYPE})
 public class UserSignalRequest {
 

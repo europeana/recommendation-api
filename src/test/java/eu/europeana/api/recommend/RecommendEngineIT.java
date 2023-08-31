@@ -78,14 +78,14 @@ public class RecommendEngineIT {
     @Test
     public void testGetEntityRecommendationsWithToken() throws RecommendException {
         // we use a non-existing labels and items body so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendEntity("agent", "base", "1", 4, null, TEST_TOKEN);
+        ResponseEntity response = recommendController.recommendEntity("agent", "1", 4, null, TEST_TOKEN);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void testGetEntityRecommendationsWithApiKey() throws RecommendException {
         // we use a non-existing labels and items body so we expect 0 results (and no request to Search API should be fired)
-        ResponseEntity response = recommendController.recommendEntity("agent", "base", "1", 4, TEST_API_KEY, null);
+        ResponseEntity response = recommendController.recommendEntity("agent", "1", 4, TEST_API_KEY, null);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 

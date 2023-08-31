@@ -1,6 +1,5 @@
 package eu.europeana.api.recommend.config;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,109 +25,99 @@ public class RecommendSettings {
 
     private static final Logger LOG = LogManager.getLogger(RecommendSettings.class);
 
-    @Value("${search.api.host}")
-    private String searchApiHost;
 
     @Value("${search.api.endpoint}")
     private String searchApiEndpoint;
 
-    @Value("${entity.api.endpoint}")
-    private String entityApiEndpoint;
-
     @Value("${set.api.endpoint}")
     private String setApiEndpoint;
 
-    @Value("${set.api.pagesize}")
-    private String setApiPageSize;
+    @Value("${entity.api.endpoint}")
+    private String entityApiEndpoint;
 
-    @Value("${recommend.engine.host}")
-    private String rengineHost;
+    @Value("${embeddings.endpoint}")
+    private String embeddingsApiEndpoint;
 
-    @Value("${recommend.engine.recommend.path}")
-    private String rengineRecommendPath;
+    @Value("${milvus.hostname}")
+    private String milvusHostName;
 
-    @Value("${recommend.engine.events.path}")
-    private String rengineEventsPath;
+    @Value("${milvus.port}")
+    private Integer milvusPort;
+
+    @Value("${milvus.collection}")
+    private String milvusCollection;
 
     @Value("${webclient.max.memsizemb:10}")
-    private String maxInMemSizeMb;
+    private Integer webClientMaxMemMb;
 
-    @Value("${test.apikey.only:false}")
-    private Boolean testApikeyOnly;
 
-    /**
-     * @return the host name part of the configured Search API
-     */
-    public String getSearchApiHost() {
-        return searchApiHost;
-    }
-
-    /**
-     * @return the full endpoint (host name + path) of the configured Search API search endpoint
-     */
     public String getSearchApiEndpoint() {
-        return searchApiEndpoint;
-    }
-
-    public String getREngineHost() {
-        return rengineHost;
-    }
-
-    public String getREngineRecommendPath() {
-        return rengineRecommendPath;
-    }
-
-    public String getREngineEventsPath() {
-        return rengineEventsPath;
-    }
-
-    public String getEntityApiEndpoint() {
-        return entityApiEndpoint;
+        return this.searchApiEndpoint;
     }
 
     public String getSetApiEndpoint() {
-        return setApiEndpoint;
+        return this.setApiEndpoint;
     }
 
-    public String getSetApiPageSize() {
-        return setApiPageSize;
+    public String getEntityApiEndpoint() {
+        return this.entityApiEndpoint;
     }
 
-    public Integer getMaxInMemSizeMb() {
-        if (StringUtils.isNumeric(maxInMemSizeMb)){
-            return Integer.parseInt(maxInMemSizeMb);
-        } else {
-            if (StringUtils.isNotBlank(maxInMemSizeMb)) {
-                LOG.error("Value webclient.max.memsizemb is not numeric: {}", maxInMemSizeMb);
-            }
-            return null;
-        }
+    public String getEmbeddingsApiEndpoint() {
+        return this.embeddingsApiEndpoint;
+    }
+    /**
+     * @return the configured Milvus hostname or ip address
+     */
+    public String getMilvusHostName() {
+        return milvusHostName;
     }
 
     /**
-     *
-     * @return true if sending only an apikey (without token) is allowed for testing purposes.
+     * @return the configured Milvus port number
      */
-    public Boolean getTestApikeyOnly() {
-        return this.testApikeyOnly;
+    public int getMilvusPort() {
+        return milvusPort;
+    }
+
+    /**
+     * @return the configured Milvus collection to use
+     */
+    public String getMilvusCollection() {
+        return milvusCollection;
+    }
+
+    public Integer getWebClientMaxMemMb() {
+        return webClientMaxMemMb;
     }
 
     @PostConstruct
-    private void logImportantSettings() {
-        searchApiEndpoint = addProtocolIfMissing(searchApiEndpoint);
-        rengineHost = addProtocolIfMissing(rengineHost);
+    private void validateAndLogSettings() {
+        searchApiEndpoint = addProtocolIfMissing(addTrailingSlashIfMissing(searchApiEndpoint));
+        setApiEndpoint = addProtocolIfMissing(addTrailingSlashIfMissing(setApiEndpoint));
+        entityApiEndpoint = addProtocolIfMissing(addTrailingSlashIfMissing(entityApiEndpoint));
+        embeddingsApiEndpoint = addProtocolIfMissing(embeddingsApiEndpoint); // don't add trailing slash!
 
         LOG.info("Recommendation API settings:");
+        LOG.info("  Milvus {}:{}, collection {}", milvusHostName, milvusPort, milvusCollection);
+        LOG.info("  Embeddings endpoint: {}", embeddingsApiEndpoint);
         LOG.info("  Search API endpoint: {}", searchApiEndpoint);
-        LOG.info("  Recommender engine host: {}", rengineHost);
-
-        // TODO LOG other endpoints
+        LOG.info("  Set    API endpoint: {}", setApiEndpoint);
+        LOG.info("  Entity API endpoint: {}", entityApiEndpoint);
     }
 
     private String addProtocolIfMissing(String hostName) {
-        String host = hostName.toLowerCase(Locale.GERMAN);
+        String host = hostName.toLowerCase(Locale.GERMAN).trim();
         if (!host.startsWith("https://") && !host.startsWith("http://")) {
-            return "https://" + host;
+            host = "https://" + host;
+        }
+        return host;
+    }
+
+    private String addTrailingSlashIfMissing(String hostName) {
+        String host = hostName.toLowerCase(Locale.GERMAN).trim();
+        if (!host.endsWith("/")) {
+            host = host + "/";
         }
         return host;
     }
