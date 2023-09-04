@@ -15,7 +15,7 @@ To build:
 files instead.
 
 
-## To configure
+ ## To configure
   <li>Milvus database hostname and port</li>
   <li>Embeddings API endpoint</li> 
   <li>Search API endpoint</li> 
