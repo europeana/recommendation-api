@@ -15,7 +15,6 @@ spec:
           imagePullPolicy: Always
           env:
             - name: CATALINA_OPTS
-#                      -Delastic.apm.enabled=${COLLECT_APM}
               value: "-javaagent:/usr/local/elastic-apm-agent.jar
                       -Delastic.apm.enabled=${COLLECT_APM}
                       -Delastic.apm.application_packages=${ELASTIC_APP_PACKAGES}
