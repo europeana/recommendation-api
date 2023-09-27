@@ -18,7 +18,7 @@ public final class RequestUtils {
     /**
      * Generates headers for sending requests to any of our APIs
      * @param token optional if provided its sent in an Authorization header
-     * @return headers to sent to
+     * @return headers to sent to an Europeana API
      */
     public static Consumer<HttpHeaders> generateHeaders(String token) {
         return httpHeaders -> {

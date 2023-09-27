@@ -3,6 +3,8 @@ package eu.europeana.api.recommend.model;
 import eu.europeana.api.recommend.common.RecordId;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -11,7 +13,10 @@ import java.util.Objects;
  * but we can modify with a weight factor so score can become larger than 1
  * @author Patrick Ehlert
  */
-public class Recommendation implements Comparable<Recommendation> {
+public class Recommendation implements Comparable<Recommendation>, Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 8682997926513140944L;
 
     private RecordId recordId;
     private float score;
@@ -39,7 +44,7 @@ public class Recommendation implements Comparable<Recommendation> {
      * @param toMerge the other recommendation to merge into this recommendation
      */
     public void merge(Recommendation toMerge) {
-        if (this.recordId.equals(toMerge.recordId)) {
+        if (!this.recordId.equals(toMerge.recordId)) {
             throw new IllegalStateException("Recommendation {} cannot be merged with recommendation {} because they have different ids");
         }
         this.score = this.score + toMerge.score;

@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api.recommend.common.RecordId;
 import eu.europeana.api.recommend.common.model.EmbeddingResponse;
-import eu.europeana.api.recommend.exception.EntityNotFoundException;
-import eu.europeana.api.recommend.exception.RecommendException;
-import eu.europeana.api.recommend.exception.RecordNotFoundException;
-import eu.europeana.api.recommend.exception.SetNotFoundException;
+import eu.europeana.api.recommend.exception.*;
 import eu.europeana.api.recommend.model.Set;
 import eu.europeana.api.recommend.model.*;
 import org.apache.logging.log4j.LogManager;
@@ -101,11 +98,20 @@ public class RecommendService {
         // TODO better use of Mono and parallelism
 
         // 1. get relevant data from setId
-        Set set = setApi.getSetData(setId, apikey, token).block();
-        LOG.trace("Contents of set {} = {}", setId, set);
-        if (set == null) {
-            throw new SetNotFoundException("Set {} not found");
+        Set set = null;
+        try {
+            set = setApi.getSetData(setId, apikey, token).block();
+            LOG.trace("Contents of set {} = {}", setId, set);
+            if (set == null) {
+                throw new SetNotFoundException("Set " + setId + " not found");
+            }
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().toLowerCase(Locale.getDefault()).contains("not found")) {
+                throw new SetNotFoundException("Set " + setId + " not found");
+            }
+            throw e; // rethrow other errors than 404
         }
+
 
         // 2. check if it's a closed set (no recommendations for open sets)
         if (setApi.isOpenSet(set)) {
@@ -119,11 +125,10 @@ public class RecommendService {
 
         // 4. get milvus recommendations for the items in the set
         Map<String, Recommendation> recommendItems = getRecommendationsForSetItems(setRecordIds, pageSize);
-        LOG.trace("{} recommendations for set items {} = {}", recommendItems.size(), set.getId(), recommendItems);
+        LOG.error("{} recommendations for set items {} = {}", recommendItems.size(), set.getId(), recommendItems);
 
         // 5. merge, sort per weight and get most relevant ones
-        List<Recommendation> merged = mergeRecommendations(recommendMetadata, recommendItems);
-        List<Recommendation> result = merged.stream().sorted(Comparator.reverseOrder()).toList();
+        List<Recommendation> result = mergeAndSortRecommendations(recommendMetadata, recommendItems);
         if (result.size() > pageSize) {
             result = result.subList(0, pageSize);
         }
@@ -175,10 +180,15 @@ public class RecommendService {
     public Mono<SearchApiResponse> getRecommendationsForEntity(String type, int id, int pageSize, String apikey, String token)
         throws RecommendException {
         // TODO better use of Mono and parallelism
-        Entity entity = entityApi.getEntity(type, id,  apikey, token).block();
-        LOG.trace("Contents of entity {}/{} = {}", type, id, entity);
-        if (entity == null) {
-            throw new EntityNotFoundException("Entity " + type + "/" + id +" not found");
+        Entity entity = null;
+        try {
+            entity = entityApi.getEntity(type, id, apikey, token).block();
+            LOG.trace("Contents of entity {}/{} = {}", type, id, entity);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().toLowerCase(Locale.getDefault()).contains("not found")) {
+                throw new EntityNotFoundException("Entity " + type + "/" + id +" not found");
+            }
+            throw e; // rethrow other errors than 404
         }
 
         // 1. get recommendations for items in associated set (if any), plus the item ids
@@ -188,12 +198,14 @@ public class RecommendService {
         LOG.trace("{} recommendations for entity set items {}/{} = {}", recommendSetItems.size(), type, id, recommendSetItems);
 
         // 2. get recommendations for entity metadata
-        Map<String, Recommendation> recommendMetadata = getRecommendationsForEntityMetadata(entity, pageSize, setRecords);
-        LOG.trace("{} recommendations for entity metadata {}/{} = {}", recommendMetadata.size(), type, id, recommendMetadata);
+        Map<String, Recommendation> recommendMetadata = Collections.emptyMap();
+        if (entity != null) {
+            recommendMetadata = getRecommendationsForEntityMetadata(entity, pageSize, setRecords);
+            LOG.trace("{} recommendations for entity metadata {}/{} = {}", recommendMetadata.size(), type, id, recommendMetadata);
+        }
 
         // 3. Merge recommendations, then sort and get the most relevant ones
-        List<Recommendation> merged = mergeRecommendations(recommendMetadata, recommendSetItems);
-        List<Recommendation> result = merged.stream().sorted(Comparator.reverseOrder()).toList();
+        List<Recommendation> result = mergeAndSortRecommendations(recommendMetadata, recommendSetItems);
         if (result.size() > pageSize) {
             result = result.subList(0, pageSize);
         }
@@ -225,7 +237,13 @@ public class RecommendService {
         if (setSearch == null || setSearch.getTotal() == 0) {
             LOG.trace("No set associated with entity {}/{}", type, id);
         } else if (setSearch.getTotal() == 1) {
-            LOG.trace("Found {} items associated with entity {}/{}", setSearch.getItems()[0].getItems().length, type, id);
+            if (LOG.isTraceEnabled()) {
+                int count = 0;
+                if (setSearch.getItems()[0].getItems() != null) {
+                    count = setSearch.getItems()[0].getItems().length;
+                }
+                LOG.trace("Found {} items associated with entity {}/{}", count, type, id);
+            }
             entitySet = setSearch.getItems()[0];
         } else {
             LOG.warn("Multiple sets associated with entity {}/{}, using first", type, id);
@@ -271,7 +289,7 @@ public class RecommendService {
         return milvus.getSimilarRecords(List.of(vector), pageSize, recordsToExclude, WEIGHT_ENTITY_METADATA);
     }
 
-    private List<Recommendation> mergeRecommendations(Map<String, Recommendation> map1, Map<String, Recommendation> map2) {
+    List<Recommendation> mergeAndSortRecommendations(Map<String, Recommendation> map1, Map<String, Recommendation> map2) {
         if (map1 == null) {
             return (map2 == null ? null : map2.values().stream().toList());
         } else if (map2 == null) {
@@ -290,7 +308,8 @@ public class RecommendService {
             result.add(target);
         }
         result.addAll(map2.values()); // add remaining (unmerged) items from map2
-        return result;
+
+        return result.stream().sorted(Comparator.reverseOrder()).toList();
     }
 
 

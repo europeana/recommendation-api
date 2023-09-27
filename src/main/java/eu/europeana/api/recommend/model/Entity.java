@@ -15,10 +15,21 @@ public class Entity {
     private static final String TYPE_PLACE    = "place";
     private static final String TYPE_TIMESPAN = "timespan";
 
-    String id;
-    String type;
-    Map<String, String> prefLabel;
-    Map<String, List<String>> altLabel;
+    private String id;
+    private String type;
+    private Map<String, String> prefLabel;
+    private Map<String, List<String>> altLabel;
+
+    private Entity() {
+        // empty constructor for Jackson serialization
+    }
+
+    public Entity(String type, String id, Map<String,String> prefLabel, Map<String, List<String>> altLabel) {
+        this.type = type;
+        this.id = id;
+        this.prefLabel = prefLabel;
+        this.altLabel = altLabel;
+    }
 
     public String getId() {
         return id;

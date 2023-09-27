@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
  * Service for interacting with Set API
  */
 @Service
-public final class SetApiService {
+public class SetApiService {
 
     private static final int MAX_SET_ITEMS = 100;
 

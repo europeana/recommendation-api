@@ -14,7 +14,6 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 @SpringBootApplication
 public class RecommendApplication extends SpringBootServletInitializer {
 
-
     public static void main(String[] args) {
         SpringApplication.run(RecommendApplication.class, args);
     }

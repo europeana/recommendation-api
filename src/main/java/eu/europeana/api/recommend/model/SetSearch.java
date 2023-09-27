@@ -5,8 +5,8 @@ package eu.europeana.api.recommend.model;
  */
 public class SetSearch {
 
-    private int total;
-    private Set[] items;
+    protected int total;
+    protected Set[] items;
 
     public int getTotal() {
         return total;

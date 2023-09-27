@@ -23,7 +23,7 @@ import java.util.List;
  * @author Patrick Ehlert
  */
 @Service
-public final class SearchApiService {
+public class SearchApiService {
 
     private static final Logger LOG = LogManager.getLogger(SearchApiService.class);
 

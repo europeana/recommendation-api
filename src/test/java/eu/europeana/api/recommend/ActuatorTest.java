@@ -1,9 +1,12 @@
 package eu.europeana.api.recommend;
 
+import eu.europeana.api.recommend.config.RecommendSettings;
+import eu.europeana.api.recommend.service.MilvusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -20,6 +23,10 @@ public class ActuatorTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockBean
+    RecommendSettings settings; // to prevent loading non-existing properties
+    @MockBean
+    MilvusService milvusService; // to prevent connecting to Milvus
 
     @Test
     public void testActuatorInfo() throws Exception {

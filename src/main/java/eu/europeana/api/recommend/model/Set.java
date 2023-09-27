@@ -6,6 +6,7 @@ import java.util.*;
 
 /**
  * Container class for holding relevant set data, retrieved from Set API
+ * Note that we use a slightly different Entity definition in the Recommendations Updater
  */
 public class Set {
 
@@ -15,6 +16,17 @@ public class Set {
     private String isDefinedBy;
     private String[] items;
 
+    private Set() {
+        // empty constructor for Jackson serialization
+    }
+
+    public Set(String id, Map<String, String> title, Map<String, String> description, String isDefinedBy, String[] items) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.isDefinedBy = isDefinedBy;
+        this.items = items;
+    }
 
     public String getId() {
         return id;
@@ -47,6 +59,9 @@ public class Set {
      * @return list of record ids
      */
     public List<RecordId> getItemsRecordId() {
+        if (this.getItems() == null) {
+            return Collections.emptyList();
+        }
         List<RecordId> result = new ArrayList<>(this.getItems().length);
         for (String fullId : this.getItems()) {
             result.add(new RecordId(fullId));
