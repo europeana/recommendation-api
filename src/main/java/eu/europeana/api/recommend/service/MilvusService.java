@@ -14,7 +14,6 @@ import io.milvus.grpc.LoadState;
 import io.milvus.param.ConnectParam;
 import io.milvus.param.R;
 import io.milvus.param.collection.GetLoadStateParam;
-import io.milvus.param.collection.HasCollectionParam;
 import io.milvus.param.collection.LoadCollectionParam;
 import io.milvus.param.dml.SearchParam;
 import io.milvus.param.highlevel.dml.GetIdsParam;
@@ -52,6 +51,7 @@ public class MilvusService {
     public MilvusService(RecommendSettings config) {
         this.config = config;
         this.milvusClient = setupMilvusConnection();
+        loadCollectionIfNecessary(config.getMilvusCollection());
     }
 
     private MilvusClient setupMilvusConnection() {
@@ -63,48 +63,49 @@ public class MilvusService {
         R<CheckHealthResponse> response = MilvusUtils.checkResponse(result.checkHealth(), "Error checking Milvus health");
         LOG.info("Milvus connection setup, isHealthy = {}", response.getData().getIsHealthy());
 
-        checkCollectionAndLoadIfNecessary(result, config.getMilvusCollection());
-
         return result;
     }
 
     /**
      * Before we can get vectors or similar records we need to load a collection. It looks like only the first client
-     * connection to a collection needs to do that, so unloading doesn't seem to be necessary (see also EA-3519)
-     * See also https://milvus.io/docs/load_collection.md
+     * using a collection needs to do that, so unloading doesn't seem to be necessary (see also EA-3580).
+     * Asking Milvus to load a collection multiple times is not a problem, so making this thread safe is not
+     * necessary. See also https://milvus.io/docs/load_collection.md
      */
-    private void checkCollectionAndLoadIfNecessary(MilvusClient client, String collectionName) {
-        // Test if configured collection is available
-        R<Boolean> collectionExists = MilvusUtils.checkResponse(client.hasCollection(HasCollectionParam.newBuilder()
-                        .withCollectionName(config.getMilvusCollection())
-                        .build()));
-        if (!Boolean.TRUE.equals(collectionExists.getData())) {
-            throw new MilvusException("Collection " + config.getMilvusCollection() + " not found in Milvus server " +
-                    config.getMilvusHostName() + ":" + config.getMilvusPort(), null);
-        }
-
-        // Check if collection is already loaded
-        GetLoadStateParam param = GetLoadStateParam.newBuilder().withCollectionName(collectionName).build();
-        R<GetLoadStateResponse> loadResponse = client.getLoadState(param);
-        if (loadResponse.getStatus() == R.Status.Success.getCode()) {
-            if (loadResponse.getData().getState() == LoadState.LoadStateNotLoad) {
-                // load collection
-                LOG.info("Sending request to load Milvus collection {}...", collectionName);
-                MilvusUtils.checkResponse(client.loadCollection(LoadCollectionParam.newBuilder()
-                        .withCollectionName(config.getMilvusCollection())
-                        .build()));
-            } else if (loadResponse.getData().getState() == LoadState.LoadStateLoaded) {
-                LOG.info("Milvus collection {} already loaded", collectionName);
-            } else if (loadResponse.getData().getState() == LoadState.LoadStateLoading) {
+    private LoadState loadCollectionIfNecessary(String collectionName) {
+        LoadState result = getCollectionLoadState(collectionName);
+        switch (result) {
+            case LoadStateLoaded ->
+                LOG.info("Milvus collection {} is loaded", collectionName);
+            case LoadStateLoading ->
                 LOG.info("Milvus collection {} is being loaded", collectionName);
-            } else {
-                throw new MilvusException("Milvus collection " + collectionName + " is in unknown state: "
-                        + loadResponse.getData().getState(), null);
+            case LoadStateNotLoad -> {
+                LOG.info("Sending request to load Milvus collection {}...", collectionName);
+                MilvusUtils.checkResponse(milvusClient.loadCollection(LoadCollectionParam.newBuilder()
+                        .withCollectionName(config.getMilvusCollection())
+                        .build()));
+                result = LoadState.LoadStateLoaded;
             }
-        } else {
-            throw new MilvusException("Error checking Milvus collection " + collectionName + " status: " + loadResponse, null);
+            case LoadStateNotExist ->
+                    throw new MilvusException("Collection " + collectionName + " not found in Milvus server " +
+                            config.getMilvusHostName() + ":" + config.getMilvusPort(), null);
+            case UNRECOGNIZED ->
+                    throw new MilvusException("Milvus collection " + collectionName + " is in unknown state: "
+                            + result, null);
         }
+        return result;
+    }
 
+    private LoadState getCollectionLoadState(String collectionName) {
+        LoadState result;
+        GetLoadStateParam param = GetLoadStateParam.newBuilder().withCollectionName(collectionName).build();
+        R<GetLoadStateResponse> loadResponse = milvusClient.getLoadState(param);
+        if (loadResponse.getStatus() == R.Status.Success.getCode()) {
+            result = loadResponse.getData().getState();
+        } else {
+            throw new MilvusException("Error checking Milvus collection " + collectionName + " load state: " + loadResponse, null);
+        }
+        return result;
     }
 
     /**
