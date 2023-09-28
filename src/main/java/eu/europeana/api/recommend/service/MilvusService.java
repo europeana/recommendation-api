@@ -9,11 +9,13 @@ import eu.europeana.api.recommend.util.MilvusUtils;
 import io.milvus.client.MilvusClient;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.grpc.CheckHealthResponse;
+import io.milvus.grpc.GetLoadStateResponse;
+import io.milvus.grpc.LoadState;
 import io.milvus.param.ConnectParam;
 import io.milvus.param.R;
+import io.milvus.param.collection.GetLoadStateParam;
 import io.milvus.param.collection.HasCollectionParam;
 import io.milvus.param.collection.LoadCollectionParam;
-import io.milvus.param.collection.ReleaseCollectionParam;
 import io.milvus.param.dml.SearchParam;
 import io.milvus.param.highlevel.dml.GetIdsParam;
 import io.milvus.param.highlevel.dml.response.GetResponse;
@@ -39,9 +41,9 @@ public class MilvusService {
 
     /* TODO We are not sure yet what the highest score is that Milvus can return. In theory if the generated Embeddings
         are properly normalised it should be 1, but we regularly get values higher than 1. So until we figure out why
-        this is, we set MAX_SCORE to 2 and log if we get values higher than that.
+        this is, we set MAX_SCORE to 1 and ignore (and log) items with any value higher than that.
      */
-    private static final float MAX_SCORE = 2F;
+    private static final float MAX_SCORE = 1F;
 
     private RecommendSettings config;
     private MilvusClient milvusClient;
@@ -61,9 +63,19 @@ public class MilvusService {
         R<CheckHealthResponse> response = MilvusUtils.checkResponse(result.checkHealth(), "Error checking Milvus health");
         LOG.info("Milvus connection setup, isHealthy = {}", response.getData().getIsHealthy());
 
-        // Test if configured collection is available before loading it
-        R<Boolean> collectionExists = MilvusUtils.checkResponse(
-                result.hasCollection(HasCollectionParam.newBuilder()
+        checkCollectionAndLoadIfNecessary(result, config.getMilvusCollection());
+
+        return result;
+    }
+
+    /**
+     * Before we can get vectors or similar records we need to load a collection. It looks like only the first client
+     * connection to a collection needs to do that, so unloading doesn't seem to be necessary (see also EA-3519)
+     * See also https://milvus.io/docs/load_collection.md
+     */
+    private void checkCollectionAndLoadIfNecessary(MilvusClient client, String collectionName) {
+        // Test if configured collection is available
+        R<Boolean> collectionExists = MilvusUtils.checkResponse(client.hasCollection(HasCollectionParam.newBuilder()
                         .withCollectionName(config.getMilvusCollection())
                         .build()));
         if (!Boolean.TRUE.equals(collectionExists.getData())) {
@@ -71,12 +83,28 @@ public class MilvusService {
                     config.getMilvusHostName() + ":" + config.getMilvusPort(), null);
         }
 
-        // load collection
-        LOG.info("Loading milvus collection. This may take a while...");
-        MilvusUtils.checkResponse(result.loadCollection(LoadCollectionParam.newBuilder()
-                .withCollectionName(config.getMilvusCollection())
-                .build()));
-        return result;
+        // Check if collection is already loaded
+        GetLoadStateParam param = GetLoadStateParam.newBuilder().withCollectionName(collectionName).build();
+        R<GetLoadStateResponse> loadResponse = client.getLoadState(param);
+        if (loadResponse.getStatus() == R.Status.Success.getCode()) {
+            if (loadResponse.getData().getState() == LoadState.LoadStateNotLoad) {
+                // load collection
+                LOG.info("Sending request to load Milvus collection {}...", collectionName);
+                MilvusUtils.checkResponse(client.loadCollection(LoadCollectionParam.newBuilder()
+                        .withCollectionName(config.getMilvusCollection())
+                        .build()));
+            } else if (loadResponse.getData().getState() == LoadState.LoadStateLoaded) {
+                LOG.info("Milvus collection {} already loaded", collectionName);
+            } else if (loadResponse.getData().getState() == LoadState.LoadStateLoading) {
+                LOG.info("Milvus collection {} is being loaded", collectionName);
+            } else {
+                throw new MilvusException("Milvus collection " + collectionName + " is in unknown state: "
+                        + loadResponse.getData().getState(), null);
+            }
+        } else {
+            throw new MilvusException("Error checking Milvus collection " + collectionName + " status: " + loadResponse, null);
+        }
+
     }
 
     /**
@@ -85,10 +113,8 @@ public class MilvusService {
     @PreDestroy
     public void close() {
         if (milvusClient != null) {
-            // release collection
-            MilvusUtils.checkResponse(milvusClient.releaseCollection(ReleaseCollectionParam.newBuilder()
-                    .withCollectionName(config.getMilvusCollection())
-                    .build()));
+            // Do not unload a collection as loading is not client specific!
+            LOG.info("Closing Milvus client...");
             milvusClient.close();
         }
     }
