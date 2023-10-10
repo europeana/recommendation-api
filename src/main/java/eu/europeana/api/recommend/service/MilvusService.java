@@ -125,7 +125,7 @@ public class MilvusService {
      * @param recordIds list with ids of the records to retrieve
      * @return list of vectors, or an empty vector for items not available in Milvus.
      */
-    public List<List<Float>> getVectorForRecords(List<RecordId> recordIds) {
+    public List<List<Double>> getVectorForRecords(List<RecordId> recordIds) {
         List<String> milvusRecordIds = new ArrayList<>(recordIds.size());
         for (RecordId recordId : recordIds) {
             milvusRecordIds.add(recordId.getMilvusIdQuotes());
@@ -142,9 +142,9 @@ public class MilvusService {
             LOG.debug("No record(s) with id(s) {} found in Milvus", recordIds);
             return Collections.emptyList();
         }
-        List<List<Float>> results = new ArrayList<>(recordIds.size());
+        List<List<Double>> results = new ArrayList<>(recordIds.size());
         for (QueryResultsWrapper.RowRecord rowRecord : result) {
-            results.add((List<Float>) rowRecord.get(MilvusConstants.VECTOR_FIELD_NAME));
+            results.add((List<Double>) rowRecord.get(MilvusConstants.VECTOR_FIELD_NAME));
         }
         return results;
     }
@@ -155,8 +155,8 @@ public class MilvusService {
      * @return a vector (with vector being a list of floating point numbers), or an empty list if the record is not
      * available in Milvus.
      */
-    public List<Float> getVectorForRecord(RecordId recordId) {
-        List<List<Float>> results = getVectorForRecords(List.of(recordId));
+    public List<Double> getVectorForRecord(RecordId recordId) {
+        List<List<Double>> results = getVectorForRecords(List.of(recordId));
         if (results.isEmpty()) {
             return Collections.emptyList();
         } else if (results.size() > 1) {
@@ -176,7 +176,7 @@ public class MilvusService {
      * @return a map containing the ids of the recommend items (for later ease of use) and the corresponding
      * recommendation object (the similar record and its similarity score)
      */
-    public Map<String, Recommendation> getSimilarRecords(List<List<Float>> vectors, int pageSize, List<RecordId> recordIdsToExclude, int weight) {
+    public Map<String, Recommendation> getSimilarRecords(List<List<Double>> vectors, int pageSize, List<RecordId> recordIdsToExclude, int weight) {
         // create request
         SearchParam.Builder builder = SearchParam.newBuilder()
                 .withCollectionName(config.getMilvusCollection())

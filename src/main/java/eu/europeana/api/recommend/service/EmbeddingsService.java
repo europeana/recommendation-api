@@ -129,7 +129,7 @@ public class EmbeddingsService {
      * @param embeddingResponse
      * @return vector
      */
-    public static List<Float> getVectors(EmbeddingResponse embeddingResponse) {
+    public static List<Double> getVectors(EmbeddingResponse embeddingResponse) {
         return Arrays.stream(embeddingResponse.getData()[0].getEmbedding()).toList();
     }
 

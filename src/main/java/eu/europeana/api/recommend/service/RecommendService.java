@@ -62,7 +62,7 @@ public class RecommendService {
      */
     public Mono<SearchApiResponse> getRecommendationsForRecord(RecordId recordId, int pageSize, int page, String seed,
                                                                String apikey, String token) throws RecommendException {
-        List<Float> vector = milvus.getVectorForRecord(recordId);
+        List<Double> vector = milvus.getVectorForRecord(recordId);
         if (vector == null || vector.isEmpty()) {
             LOG.warn("Record {} not in Milvus", recordId);
             if (!searchApi.checkRecordExists(recordId, apikey, token)) {
@@ -152,13 +152,13 @@ public class RecommendService {
             LOG.error("No response from Embeddings API for set {}", set.getId());
             return Collections.emptyMap();
         }
-        List<Float> vector = EmbeddingsService.getVectors(embeddingResponse);
+        List<Double> vector = EmbeddingsService.getVectors(embeddingResponse);
         LOG.trace("Vector for set {} = {}", set.getId(), vector);
         return milvus.getSimilarRecords(List.of(vector), pageSize, setRecordIds, WEIGHT_SET_METADATA);
     }
 
     private Map<String, Recommendation> getRecommendationsForSetItems(List<RecordId> setRecordIds, int pageSize) {
-        List<List<Float>> vectors = milvus.getVectorForRecords(setRecordIds);
+        List<List<Double>> vectors = milvus.getVectorForRecords(setRecordIds);
         if (vectors.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -253,7 +253,7 @@ public class RecommendService {
         // generate vectors
         if (entitySet != null) {
             result.itemsInSet = entitySet.getItemsRecordId();
-            List<List<Float>> vectors = milvus.getVectorForRecords(result.itemsInSet);
+            List<List<Double>> vectors = milvus.getVectorForRecords(result.itemsInSet);
             LOG.trace("Vectors of items associated with entity {}/{} = {}", type, id, vectors);
 
             if (vectors.isEmpty()) {
@@ -284,7 +284,7 @@ public class RecommendService {
             LOG.error("No response from Embeddings API for entity {}/{}", entity.getType(), entity.getId());
             return Collections.emptyMap();
         }
-        List<Float> vector = EmbeddingsService.getVectors(embeddingResponse);
+        List<Double> vector = EmbeddingsService.getVectors(embeddingResponse);
         LOG.trace("Vector for entity {}/{} = {}", entity.getType(), entity.getId(), vector);
         return milvus.getSimilarRecords(List.of(vector), pageSize, recordsToExclude, WEIGHT_ENTITY_METADATA);
     }

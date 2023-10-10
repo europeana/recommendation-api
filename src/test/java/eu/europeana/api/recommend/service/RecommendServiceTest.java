@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 public class RecommendServiceTest {
 
     private static final RecordId RECORD_ID1 = new RecordId("a", "1");
-    private static final Float[] VECTOR1 = new Float[]{0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
+    private static final Double[] VECTOR1 = new Double[]{0.1d, 0.2d, 0.3d, 0.4d, 0.5d};
     private static final Recommendation RECOMMENDATION1 = new Recommendation(RECORD_ID1, 0.5f);
     private static final Map<String, Recommendation> RECOMMEND_MAP = Map.of(RECORD_ID1.toString(), RECOMMENDATION1);
 
