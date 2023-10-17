@@ -15,9 +15,14 @@
         <Root level="INFO">
             <AppenderRef ref="Console"/>
         </Root>
-        <Logger name="eu.europeana.api.recommend.service.RecommendService" level="INFO"/>
+        <Logger name="eu.europeana.api.recommend.service.RecommendService" level="TRACE"/>
+        <Logger name="eu.europeana.api.recommend.service.EmbeddingsService" level="TRACE"/>
+        <Logger name="eu.europeana.api.recommend.service.MilvusService" level="TRACE"/>
 
         <!-- Set to DEBUG to log all requests to backend systems -->
-        <Logger name="eu.europeana.api.recommend.config.WebClients" level="INFO"/>
+        <Logger name="eu.europeana.api.recommend.config.WebClients" level="DEBUG"/>
+
+        <!-- Milvus will log all interactions using INFO level so we set to WARN to prevent that -->
+        <Logger name="io.milvus.client.AbstractMilvusGrpcClient" level="WARN"/>
     </Loggers>
 </Configuration>

@@ -1,4 +1,4 @@
-package eu.europeana.api.recommend.service;
+package eu.europeana.api.recommend.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;
@@ -25,22 +25,22 @@ public final class TokenUtils {
 
     /**
      * returns the encoded apikey from the token
-     * @param token received token (or authorization header value)
+     * @param authorizationHeader received authorization header value (including Bearer keyword)
      * @return value of the encoded ApiKey
      * @throws InvalidTokenException if we can't decode the token, or if it doesn't contain an apikey
      */
-    public static String getApiKey(String token) throws InvalidTokenException {
-        return getClaimFromToken(getToken(token), API_KEY_CLAIM);
+    public static String getApiKey(String authorizationHeader) throws InvalidTokenException {
+        return getClaimFromToken(getTokenFromHeader(authorizationHeader), API_KEY_CLAIM);
     }
 
     /**
      * Returns the encoded user Id from the token
-     * @param token token passed
+     * @param authorizationHeader received authorization header value (including Bearer keyword)
      * @return value of the encoded user
      * @throws InvalidTokenException if we can't decode the token, or if it doesn't contain an apikey
      */
-    public static String getUserId(String token) throws InvalidTokenException{
-        return getClaimFromToken(getToken(token), USER_CLAIM);
+    public static String getUserId(String authorizationHeader) throws InvalidTokenException{
+        return getClaimFromToken(getTokenFromHeader(authorizationHeader), USER_CLAIM);
     }
 
 
@@ -67,15 +67,15 @@ public final class TokenUtils {
 
     /**
      * returns the substring after the Bearer from the received token (or authorization header value)
-     * @param token
+     * @param authHeaderValue the value of the authorization header
      * @return
      * @throws InvalidTokenException
      */
-    private static String getToken(String token) throws InvalidTokenException {
-        if (token.toLowerCase(Locale.GERMAN).startsWith("bearer ")) {
-            return token.substring("Bearer ".length());
+    private static String getTokenFromHeader(String authHeaderValue) throws InvalidTokenException {
+        if (authHeaderValue.toLowerCase(Locale.GERMAN).startsWith("bearer ")) {
+            return authHeaderValue.substring("Bearer ".length());
         }
-        throw new InvalidTokenException("Invalid Token provided");
+        throw new InvalidTokenException("Invalid authorization header provided");
     }
 
 }

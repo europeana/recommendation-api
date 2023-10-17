@@ -1,8 +1,5 @@
 package eu.europeana.api.recommend;
 
-import eu.europeana.api.recommend.config.SocksProxyConfig;
-import eu.europeana.api.recommend.util.SocksProxyActivator;
-import org.apache.logging.log4j.LogManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -17,20 +14,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 @SpringBootApplication
 public class RecommendApplication extends SpringBootServletInitializer {
 
-
-
-
     public static void main(String[] args) {
-        // When deploying to Cloud Foundry, this will log the instance index number, IP and GUID
-        LogManager.getLogger(RecommendApplication.class).
-                info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
-                        System.getenv("CF_INSTANCE_INDEX"),
-                        System.getenv("CF_INSTANCE_GUID"),
-                        System.getenv("CF_INSTANCE_IP"));
-
-        // Activate socks proxy (if your application requires it)
-        SocksProxyActivator.activate(new SocksProxyConfig("recommend.properties", "recommend.user.properties"));
-
         SpringApplication.run(RecommendApplication.class, args);
     }
 

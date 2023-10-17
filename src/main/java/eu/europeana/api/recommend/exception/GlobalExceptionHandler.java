@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api.recommend.config.RecommendSettings;
-import eu.europeana.api.recommend.model.SearchAPIError;
+import eu.europeana.api.recommend.model.SearchApiError;
 import io.micrometer.core.instrument.util.StringEscapeUtils;
 import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     private static final String FAILING_RECORD_API = "Record API";
     private static final String FAILING_SET_API = "Set API";
     private static final String FAILING_ENTITY_API = "Entity API";
-    private static final String FAILING_RECOMMENDATION_ENGINE = "Recommendation engine";
+    private static final String FAILING_EMBEDDINGS_API = "Embeddings API";
 
     private static final ObjectMapper JSON_ERROR_TO_OBJECT = new ObjectMapper();
     static {
@@ -42,13 +42,17 @@ public class GlobalExceptionHandler {
 
     private RecommendSettings config;
 
+    /**
+     * Initialize new global exception handler
+     * @param config application configuration
+     */
     public GlobalExceptionHandler(RecommendSettings config) {
         this.config = config;
     }
 
     /**
-     * Checks if we should log an error and rethrows it
-     * @param e caught exception
+     * Check if we should log an error and rethrow it
+     * @param e caught {@link RecommendException}
      * @throws RecommendException rethrown exception
      */
     @ExceptionHandler(RecommendException.class)
@@ -65,6 +69,9 @@ public class GlobalExceptionHandler {
 
     /**
      * Make sure we return 401 instead of 400 when there's no authorization header
+     * @param e caught {@link MissingRequestHeaderException}
+     * @param response the response of the failing request
+     * @throws IOException if there's an error sending back the response
      */
     @ExceptionHandler
     @SuppressWarnings("findsecbugs:XSS_SERVLET") // we control error message and use StringEscapeUtils so very low risk
@@ -78,9 +85,9 @@ public class GlobalExceptionHandler {
 
     /**
      * Make sure we return 400 instead of 500 when input validation fails
-     * @param e
-     * @param response
-     * @throws IOException
+     * @param e caught {@link ConstraintViolationException}
+     * @param response the response of the failing request
+     * @throws IOException if there's an error sending back the response
      */
     @ExceptionHandler
     @SuppressWarnings("findsecbugs:XSS_SERVLET") // we control error message and use StringEscapeUtils so very low risk
@@ -89,9 +96,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle all exceptions from backend systems
-     * @param ex
-     * @return
+     * Make sure we return 502 instead of 500 when there's a problem with Milvus
+     * @param e caught {@link MilvusException}
+     * @param response the response of the failing request
+     * @throws IOException if there's an error sending back the response
+     */
+    @ExceptionHandler
+    public void handleMilvusException(MilvusException e, HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.BAD_GATEWAY.value(), StringEscapeUtils.escapeJson(e.getMessage()));
+    }
+
+    /**
+     * Handle all exceptions from API backend systems (WebClient calls) and return 502 response instead
+     * @param ex caught {@link WebClientResponseException}
+     * @param response the response of the failing request
+     * @throws IOException if there's an error sending back the response
      */
     @ExceptionHandler(WebClientResponseException.class)
     @SuppressWarnings("findsecbugs:XSS_SERVLET") // we control error message and use StringEscapeUtils so very low risk
@@ -105,7 +124,7 @@ public class GlobalExceptionHandler {
             // Decode Search API message if available
             if (StringUtils.isNotBlank(ex.getResponseBodyAsString())) {
                 try {
-                    SearchAPIError searchApiError = JSON_ERROR_TO_OBJECT.readValue(ex.getResponseBodyAsString(), SearchAPIError.class);
+                    SearchApiError searchApiError = JSON_ERROR_TO_OBJECT.readValue(ex.getResponseBodyAsString(), SearchApiError.class);
                     errorMsg = errorMsg + searchApiError.getError();
                 } catch (JsonProcessingException e) {
                     LOG.warn("Cannot deserialize error response from Search API: {}", ex.getResponseBodyAsString(), e);
@@ -140,16 +159,19 @@ public class GlobalExceptionHandler {
                 result = FAILING_ENTITY_API;
             } else if (request.startsWith(config.getSetApiEndpoint())) {
                 result = FAILING_SET_API;
-            } else if (request.startsWith(config.getREngineHost())) {
-                result = FAILING_RECOMMENDATION_ENGINE;
+            } else if (request.startsWith(config.getEmbeddingsApiEndpoint())) {
+                result = FAILING_EMBEDDINGS_API;
             }
         }
         return result;
     }
 
     private String filterOutSensitiveInformation(String originalMessage) {
-        String result = originalMessage.replaceAll(config.getREngineHost(), "<ENGINE_HOST>");
+        String result = originalMessage.replaceAll(config.getMilvusHostName(), "<DATABASE_HOST>");
         result = result.replaceAll(config.getSearchApiEndpoint(), "<SEARCH_API_ENDPOINT>");
+        result = result.replaceAll(config.getSetApiEndpoint(), "<SET_API_ENDPOINT>");
+        result = result.replaceAll(config.getEntityApiEndpoint(), "<ENTITY_API_ENDPOINT>");
+        result = result.replaceAll(config.getEmbeddingsApiEndpoint(), "<EMBEDDINGS_API_ENDPOINT>");
         return result;
     }
 

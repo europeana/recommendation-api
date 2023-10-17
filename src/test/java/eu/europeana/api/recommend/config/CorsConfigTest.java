@@ -1,7 +1,8 @@
 package eu.europeana.api.recommend.config;
 
-import eu.europeana.api.recommend.RecommendControllerTest;
+import eu.europeana.api.recommend.service.MilvusService;
 import eu.europeana.api.recommend.service.RecommendService;
+import eu.europeana.api.recommend.web.RecommendControllerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,6 +30,10 @@ public class CorsConfigTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockBean
+    RecommendSettings settings; // to prevent loading non-existing properties
+    @MockBean
+    MilvusService milvusService; // to prevent connecting to Milvus
 
     /**
      * Test if CORS works for GET normal requests and error requests
@@ -36,7 +41,7 @@ public class CorsConfigTest {
     @Test
     public void testCorsGet() throws Exception {
         // normal (200 response) request
-        testNormalResponse(mockMvc.perform(get("/recommend/set/{setId}", "2")
+        testNormalResponse(mockMvc.perform(get("/recommend/set/{setId}", "1")
                 .header(HttpHeaders.AUTHORIZATION, RecommendControllerTest.TOKEN)
                 .header(HttpHeaders.ORIGIN, "https://test.com")));
 
@@ -52,12 +57,12 @@ public class CorsConfigTest {
     @Test
     public void testCorsHead() throws Exception {
         // normal (200 response) request
-        testNormalResponse(mockMvc.perform(get("/recommend/set/{setId}", "2")
+        testNormalResponse(mockMvc.perform(get("/recommend/record/{datasetId}/{localId}", "3", "3")
                 .header(HttpHeaders.AUTHORIZATION, RecommendControllerTest.TOKEN)
                 .header(HttpHeaders.ORIGIN, "https://test.com")));
 
         // error request
-        testErrorResponse(mockMvc.perform(get("/recommend/set/{setId}", "2-2")
+        testErrorResponse(mockMvc.perform(get("/recommend/record/{datasetId}/{localId}", "4-4", "4")
                 .header(HttpHeaders.AUTHORIZATION, RecommendControllerTest.TOKEN)
                 .header(HttpHeaders.ORIGIN, "https://test.com")));
     }
@@ -68,7 +73,7 @@ public class CorsConfigTest {
      */
     @Test
     public void testCorsPreFlight() throws Exception {
-        mockMvc.perform(options("/recommend/set/{setId}", "2")
+        mockMvc.perform(options("/recommend/set/{setId}", "5")
                 .header(HttpHeaders.ORIGIN, "https://test.com")
                 .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
                 .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, HttpHeaders.AUTHORIZATION))
