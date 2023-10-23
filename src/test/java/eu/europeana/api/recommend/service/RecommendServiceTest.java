@@ -10,6 +10,7 @@ import eu.europeana.api.recommend.exception.RecordNotFoundException;
 import eu.europeana.api.recommend.exception.SetNotFoundException;
 import eu.europeana.api.recommend.model.*;
 import eu.europeana.api.recommend.model.Set;
+import eu.europeana.api.recommend.util.MilvusUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,11 +83,12 @@ public class RecommendServiceTest {
     }
 
     private void mockMilvus() {
+        List<Float> vector = MilvusUtils.convertToFloatList(Arrays.stream(VECTOR1).toList());
         when(milvusService.getVectorForRecord(any())).thenReturn(Collections.emptyList()); // default return empty list;
-        when(milvusService.getVectorForRecord(RECORD_ID1)).thenReturn(Arrays.stream(VECTOR1).toList());
+        when(milvusService.getVectorForRecord(RECORD_ID1)).thenReturn(vector);
 
         when(milvusService.getSimilarRecords(any(), anyInt(), any(), anyInt())).thenReturn(Collections.emptyMap());
-        when(milvusService.getSimilarRecords(eq(List.of(Arrays.stream(VECTOR1).toList())), anyInt(), any(), anyInt())).thenReturn(RECOMMEND_MAP);
+        when(milvusService.getSimilarRecords(eq(List.of(vector)), anyInt(), any(), anyInt())).thenReturn(RECOMMEND_MAP);
     }
 
     private void mockSearchApi() {
