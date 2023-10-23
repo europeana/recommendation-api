@@ -4,6 +4,9 @@ import eu.europeana.api.recommend.exception.MilvusException;
 import io.milvus.param.R;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Utility functions to using Milvus recommendations database.
  *
@@ -48,6 +51,16 @@ public final class MilvusUtils {
         return checkResponse(response, null);
     }
 
-
+    /**
+     * Embeddings API returns vectors as a List<Double>, but Milvus currently only accepts searches with List<Float>
+     * so we use this method to convert.
+     * Milvus v2.4 is expected to support List<Double> (see also https://github.com/milvus-io/milvus/discussions/18094)
+     * so eventually this method should become obsolete
+     * @param listToConvert list of double
+     * @return list of float
+     */
+    public static List<Float> convertToFloatList(List<Double> listToConvert) {
+        return listToConvert.stream().map(Double::floatValue).collect(Collectors.toList());
+    }
 
 }
