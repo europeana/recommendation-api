@@ -76,7 +76,7 @@ public class RecommendService {
                 Collection<Recommendation> unsorted = milvus.getSimilarRecords(List.of(vector), pageSize, List.of(recordId), 1).values();
                 List<Recommendation> sorted = unsorted.stream().sorted(Comparator.reverseOrder()).toList();
                 LOG.trace("{} recommendations for record {} = {}", sorted.size(), recordId, sorted);
-                return searchApi.generateResponse(sorted, pageSize, apikey,token);
+                return searchApi.generateResponse(sorted, pageSize, apikey, token);
             }
         }
         return null;
@@ -95,7 +95,7 @@ public class RecommendService {
      * @throws RecommendException when the set cannot be found in Set API
      */
     public Mono<SearchApiResponse> getRecommendationsForSet(String setId, int pageSize, int page, String seed,
-                                                           String apikey, String token) throws RecommendException {
+                                                            String apikey, String token) throws RecommendException {
         // TODO better use of Mono and parallelism
 
         // 1. get relevant data from setId
@@ -136,7 +136,7 @@ public class RecommendService {
         LOG.trace("Sorted recommendations for set {} = {}", setId, result);
 
         // 6. generate response using Search API
-        return searchApi.generateResponse(result, pageSize, apikey,token);
+        return searchApi.generateResponse(result, pageSize, apikey, token);
     }
 
     // Try to get generate vector with Embeddings API and use that to get Recommendations, but if Embeddings API is not
@@ -173,17 +173,17 @@ public class RecommendService {
      * @param type entity type (e.g. agent, concept, timespan)
      * @param id entity id
      * @param pageSize optional, number of similar records to return, between 1 and 50
-     * @param apiKey optional API key (used for requests to other APIs if provided)
+     * @param apikey optional API key (used for requests to other APIs if provided)
      * @param token optional authentication token (used for requests to other APIs if provided)
      * @return json response with similar records data or null if the provided set is an open set
      * @throws RecommendException when we can't retrieve the requested entity
      */
-    public Mono<SearchApiResponse> getRecommendationsForEntity(String type, int id, int pageSize, String apiKey ,String token)
+    public Mono<SearchApiResponse> getRecommendationsForEntity(String type, int id, int pageSize, String apikey, String token)
         throws RecommendException {
         // TODO better use of Mono and parallelism
         Entity entity = null;
         try {
-            entity = entityApi.getEntity(type, id,  apiKey,token).block();
+            entity = entityApi.getEntity(type, id, apikey, token).block();
             LOG.trace("Contents of entity {}/{} = {}", type, id, entity);
         } catch (RuntimeException e) {
             if (e.getMessage() != null && e.getMessage().toLowerCase(Locale.getDefault()).contains("not found")) {
@@ -193,7 +193,7 @@ public class RecommendService {
         }
 
         // 1. get recommendations for items in associated set (if any), plus the item ids
-        EntitySetItemsResult recommendEntitySetItems = getRecommendationsForEntitySetItems(type, id, pageSize, apiKey, token);
+        EntitySetItemsResult recommendEntitySetItems = getRecommendationsForEntitySetItems(type, id, pageSize, apikey, token);
         List<RecordId> setRecords = recommendEntitySetItems.itemsInSet;
         Map<String, Recommendation> recommendSetItems = recommendEntitySetItems.recommendations;
         LOG.trace("{} recommendations for entity set items {}/{} = {}", recommendSetItems.size(), type, id, recommendSetItems);
@@ -213,7 +213,7 @@ public class RecommendService {
         LOG.trace("Sorted recommendations for entity {}/{} = {}", type, id, result);
 
         // 6. generate response using Search API
-        return searchApi.generateResponse(result, pageSize, apiKey,token);
+        return searchApi.generateResponse(result, pageSize, apikey, token);
     }
 
     /**
@@ -221,14 +221,14 @@ public class RecommendService {
      * (top 100) items in that set. This step can be skipped if set API is not available/malfunctioning.
      * Milvus is seen as 'must-have' so if there's an error there we'll propagate that.
      */
-    private EntitySetItemsResult getRecommendationsForEntitySetItems(String type, int id, int pageSize, String xApiKey, String token) {
+    private EntitySetItemsResult getRecommendationsForEntitySetItems(String type, int id, int pageSize, String apikey, String token) {
         EntitySetItemsResult result = new EntitySetItemsResult();
         result.itemsInSet = Collections.emptyList();
         result.recommendations = Collections.emptyMap();
 
         SetSearch setSearch = null;
         try {
-            setSearch = setApi.getSetDataForEntity(Entity.generateUri(type, id), xApiKey,token).block();
+            setSearch = setApi.getSetDataForEntity(Entity.generateUri(type, id), apikey, token).block();
         } catch (RuntimeException e) {
             LOG.error("Error retrieving associated set data for entity {}/{}", type, id, e);
             return result;
