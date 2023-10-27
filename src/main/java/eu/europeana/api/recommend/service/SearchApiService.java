@@ -44,17 +44,16 @@ public class SearchApiService {
      * @return true if the Search API can find the record, otherwise false
      */
     public boolean checkRecordExists(RecordId recordId, String apikey,String token) {
-        StringBuilder query = new StringBuilder("search.json?query=")
-                .append(SOLR_ID_FIELD).append(":\"")
-                .append(recordId.getEuropeanaId())
-                .append('"')
-                .append("rows=1")
-                .append("&profile=minimal")
-                .append("&wskey=").append(apikey);
-        //TODO : For search API, wskey param to be removed once api starts supporting apikey header 
+        String query = "search.json?query="
+            + SOLR_ID_FIELD + ":\""
+            + recordId.getEuropeanaId()
+            + '"'
+            + "rows=1"
+            + "&profile=minimal";
+
         SearchApiResponse response = webClient.get()
-                .uri(query.toString())				
-                .headers(RequestUtils.generateHeaders(token,null)) 
+                .uri(query)
+                .headers(RequestUtils.generateHeaders(token,apikey))
                 .retrieve()
                 .bodyToMono(SearchApiResponse.class).block();
         if (response != null) {

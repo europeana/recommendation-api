@@ -135,13 +135,15 @@ public class RecommendControllerTest {
     /* Tests for New Header xApiKey */
 
     @Test
-    public void testRecordOkWithApiKeyHeader(){
-        //TODO : Test if api status is ok after passing X-Api-Key header
+    public void testRecordOkWithApiKeyOnlyInHeader() throws Exception {
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/", "a", "1")
+                .header(X_API_KEY_HEADER, "test"))
+            .andExpect(status().isOk());
 
     }
 
     @Test
-    public void testEntityOkWithApiKeyHeader() throws Exception {
+    public void testEntityOkWithApiKeyOnlyInHeader() throws Exception {
 
         this.mockMvc.perform(get("/recommend/entity/{type}/{id}", "concept", "2")
                 .header(X_API_KEY_HEADER, "test"))
@@ -149,7 +151,7 @@ public class RecommendControllerTest {
     }
 
     @Test
-    public void testSetOkWithApiKeyHeader() throws Exception {
+    public void testSetOkWithApiKeyOnlyInHeader() throws Exception {
         this.mockMvc.perform(get("/recommend/set/{setId}/", 2)
                 .header(X_API_KEY_HEADER, "test"))
             .andExpect(status().isOk());
