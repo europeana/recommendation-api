@@ -8,6 +8,7 @@ import eu.europeana.api.recommend.exception.RecommendException;
 import eu.europeana.api.recommend.model.SearchApiResponse;
 import eu.europeana.api.recommend.service.RecommendService;
 import eu.europeana.api.recommend.util.RecommendationConstants;
+import eu.europeana.api.recommend.util.RequestUtils;
 import eu.europeana.api.recommend.util.TokenUtils;
 import io.micrometer.core.instrument.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -59,7 +60,7 @@ public class RecommendController {
 
   private static final java.util.regex.Pattern EUROPEANA_ID = java.util.regex.Pattern.compile("^/\\w*/\\w*$");
 
-  private static final String X_API_KEY_HEADER = "X-Api-Key";
+
 
   private RecommendService recommendService;
 
@@ -99,7 +100,7 @@ public class RecommendController {
       @RequestParam(value = "wskey", required = false)
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String apikey = extractApiKey(authToken, wskey, xApiKey);
     Mono<SearchApiResponse> result = recommendService.getRecommendationsForRecord(new RecordId(datasetId, localId), pageSize, page, seed, apikey, authToken);
@@ -125,7 +126,7 @@ public class RecommendController {
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String userId = extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -149,7 +150,7 @@ public class RecommendController {
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String userId = extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -186,7 +187,7 @@ public class RecommendController {
       @RequestParam(value = "wskey", required = false)
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String apikey = extractApiKey(authToken, wskey, xApiKey);
     Mono<SearchApiResponse> result = recommendService.getRecommendationsForSet(setId, pageSize,page, seed, apikey, authToken);
@@ -210,7 +211,7 @@ public class RecommendController {
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -232,7 +233,7 @@ public class RecommendController {
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -266,7 +267,7 @@ public class RecommendController {
       @RequestParam(value = "wskey", required = false)
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String apikey = extractApiKey(authToken, wskey, xApiKey);
     Mono<SearchApiResponse> result = recommendService.getRecommendationsForEntity(type,Integer.valueOf(id), pageSize,  apikey, authToken);
@@ -294,7 +295,7 @@ public class RecommendController {
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -318,7 +319,7 @@ public class RecommendController {
       @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
       @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
       throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);

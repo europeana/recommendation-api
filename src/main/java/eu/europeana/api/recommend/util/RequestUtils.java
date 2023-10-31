@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 public final class RequestUtils {
 
 
-    private static final String X_API_KEY_HEADER = "X-Api-Key";
+    public static final String X_API_KEY_HEADER = "X-Api-Key";
     private RequestUtils() {
         // empty constructor to prevent initialization
     }

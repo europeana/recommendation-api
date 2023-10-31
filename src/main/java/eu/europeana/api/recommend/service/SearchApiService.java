@@ -76,10 +76,10 @@ public class SearchApiService {
             return Mono.just(new SearchApiResponse(apikey));
         }
 
-        String query = this.generateSearchQuery(recommendations, maxResults, apikey);   //Shweta: Impact for search to be verified
+        String query = this.generateSearchQuery(recommendations, maxResults, apikey);
         Mono<SearchApiResponse> response = webClient.get()
                 .uri(query)
-                .headers(RequestUtils.generateHeaders(token,null)) //Shweta: Search APi not supporting API key header - Impact to be verified
+                .headers(RequestUtils.generateHeaders(token,apikey))
                 .retrieve()
                 .bodyToMono(SearchApiResponse.class);
 
