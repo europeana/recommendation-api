@@ -29,31 +29,28 @@ public class SetApiService {
     /**
      * Return the relevant set data for doing a set recommendation based on its metadata
      * @param setId the id of the set to retrieve
-     * @param apikey optional, if empty apikey parameter is not included (authToken should be provided)
+     * @param apikey optional, if empty apikey  is not included (authToken should be provided)
      * @param token optional, if empty the apikey parameter is used
      * @return set object
      */
-    public Mono<Set> getSetData(String setId, String apikey, String token) {
-        StringBuilder query = new StringBuilder(setId)
-                .append("?pageSize=").append(MAX_SET_ITEMS)
-                .append("&profile=standard");
-        if (StringUtils.isBlank(token) && StringUtils.isNotBlank(apikey)) {
-            // we favor tokens over API keys
-            query.append("&wskey=").append(apikey);
-        }
+    public Mono<Set> getSetData(String setId, String apikey,String token) {
+        String query = setId
+            + "?pageSize=" + MAX_SET_ITEMS
+            + "&profile=standard";
 
         return this.webClient.get()
-                .uri(query.toString())
-                .headers(RequestUtils.generateHeaders(token))
+                .uri(query)
+                .headers(RequestUtils.generateHeaders(token,apikey))
                 .retrieve()
                 .bodyToMono(Set.class);
     }
+
 
     /**
      * Generates a Set API search query to fetch entity set items for the given entity uri.
      * example : ?query=type:EntityBestItemsSet&qf=subject:<entityUri>&pageSize=<pageSize>&profile=standard&wskey=
      * @param entityUri uri of the entity for which we want set items
-     * @param apikey optional, if empty apikey parameter is not included (authToken should be provided)
+     * @param apikey optional, if empty apikey header is not included (authToken should be provided)
      * @param token optional, if empty the apikey parameter is used
      * @return setsearch object
      */
@@ -62,14 +59,11 @@ public class SetApiService {
         query.append("&qf=subject:").append(entityUri);
         query.append("&pageSize=").append(MAX_SET_ITEMS);
         query.append("&profile=standard");
-        if (StringUtils.isBlank(token) && StringUtils.isNotBlank(apikey)) {
-            // we favor tokens over API keys
-            query.append("&").append("wskey=").append(apikey);
-        }
+
 
         return this.webClient.get()
                 .uri(query.toString())
-                .headers(RequestUtils.generateHeaders(token))
+                .headers(RequestUtils.generateHeaders(token,apikey))
                 .retrieve()
                 .bodyToMono(SetSearch.class);
     }

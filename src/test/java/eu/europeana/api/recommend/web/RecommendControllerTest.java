@@ -17,8 +17,10 @@ public class RecommendControllerTest {
 
     public static final String AUTH_HEADER     = "Authorization";
     public static final String TOKEN           = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYXpwIjoidGVzdF9rZXkiLCJqdGkiOiJiODM4MDM3Ni1mYThhLTQxN2ItODg0NC0xZTQ4ZjBlNDkyNjkiLCJpYXQiOjE1OTg0NTAwNzIsImV4cCI6MTU5ODQ1MzY3Mn0.in-NrpzLE4NVptQJUbFzEeWUDMpZShlad3GRIxgUlVk";
-    private static final String PAGE_PARAM     = "page";
+     private static final String PAGE_PARAM     = "page";
     private static final String SEED_PARAM     = "seed";
+
+    public static final String X_API_KEY_HEADER     = "X-Api-Key";
 
     @Autowired
     private MockMvc mockMvc;
@@ -128,5 +130,33 @@ public class RecommendControllerTest {
                         .header(AUTH_HEADER, TOKEN))
                 .andExpect(status().is(400));
     }
+
+
+    /* Tests for New Header xApiKey */
+
+    @Test
+    public void testRecordOkWithApiKeyOnlyInHeader() throws Exception {
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/", "a", "1")
+                .header(X_API_KEY_HEADER, "test"))
+            .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void testEntityOkWithApiKeyOnlyInHeader() throws Exception {
+
+        this.mockMvc.perform(get("/recommend/entity/{type}/{id}", "concept", "2")
+                .header(X_API_KEY_HEADER, "test"))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testSetOkWithApiKeyOnlyInHeader() throws Exception {
+        this.mockMvc.perform(get("/recommend/set/{setId}/", 2)
+                .header(X_API_KEY_HEADER, "test"))
+            .andExpect(status().isOk());
+    }
+
+
 
 }

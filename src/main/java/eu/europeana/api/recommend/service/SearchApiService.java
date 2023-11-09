@@ -43,18 +43,17 @@ public class SearchApiService {
      * @param token optional, if empty the apikey parameter is used
      * @return true if the Search API can find the record, otherwise false
      */
-    public boolean checkRecordExists(RecordId recordId, String apikey, String token) {
-        StringBuilder query = new StringBuilder("search.json?query=")
-                .append(SOLR_ID_FIELD).append(":\"")
-                .append(recordId.getEuropeanaId())
-                .append('"')
-                .append("rows=1")
-                .append("&profile=minimal")
-                .append("&wskey=").append(apikey);
+    public boolean checkRecordExists(RecordId recordId, String apikey,String token) {
+        String query = "search.json?query="
+            + SOLR_ID_FIELD + ":\""
+            + recordId.getEuropeanaId()
+            + '"'
+            + "rows=1"
+            + "&profile=minimal";
 
         SearchApiResponse response = webClient.get()
-                .uri(query.toString())
-                .headers(RequestUtils.generateHeaders(token))
+                .uri(query)
+                .headers(RequestUtils.generateHeaders(token,apikey))
                 .retrieve()
                 .bodyToMono(SearchApiResponse.class).block();
         if (response != null) {
@@ -65,14 +64,14 @@ public class SearchApiService {
 
     /**
      * Given a set of recommendations, we use a reactive (non-blocking) WebClient to verify with Search API if these
-     * records still exist. Also the response of Search API is used as our final recommendation response.
+     * records still exist. Also, the response of Search API is used as our final recommendation response.
      * @param recommendations the recommendations we want to return
      * @param maxResults the maximum number of results
      * @param apikey optional, if empty apikey parameter is not included (token should be provided)
      * @param token optional, if empty the apikey parameter is used
      * @return response from Search API
      */
-    public Mono<SearchApiResponse> generateResponse(List<Recommendation> recommendations, int maxResults, String apikey, String token) {
+    public Mono<SearchApiResponse> generateResponse(List<Recommendation> recommendations, int maxResults, String apikey,String token) {
         if (recommendations == null || recommendations.isEmpty()) {
             return Mono.just(new SearchApiResponse(apikey));
         }
@@ -80,7 +79,7 @@ public class SearchApiService {
         String query = this.generateSearchQuery(recommendations, maxResults, apikey);
         Mono<SearchApiResponse> response = webClient.get()
                 .uri(query)
-                .headers(RequestUtils.generateHeaders(token))
+                .headers(RequestUtils.generateHeaders(token,apikey))
                 .retrieve()
                 .bodyToMono(SearchApiResponse.class);
 

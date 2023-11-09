@@ -11,6 +11,8 @@ import java.util.function.Consumer;
  */
 public final class RequestUtils {
 
+
+    public static final String X_API_KEY_HEADER = "X-Api-Key";
     private RequestUtils() {
         // empty constructor to prevent initialization
     }
@@ -20,12 +22,18 @@ public final class RequestUtils {
      * @param token optional if provided its sent in an Authorization header
      * @return headers to sent to an Europeana API
      */
-    public static Consumer<HttpHeaders> generateHeaders(String token) {
+    public static Consumer<HttpHeaders> generateHeaders(String token,String apikey) {
         return httpHeaders -> {
             httpHeaders.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
             if (StringUtils.isNotBlank(token)) {
                 httpHeaders.set(HttpHeaders.AUTHORIZATION, token);
             }
+            if (StringUtils.isNotBlank(apikey)) {
+                httpHeaders.set(X_API_KEY_HEADER, apikey);
+            }
         };
     }
+
+
+
 }
