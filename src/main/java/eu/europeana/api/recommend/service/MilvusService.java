@@ -42,7 +42,7 @@ public class MilvusService {
         are properly normalised it should be 1, but we regularly get values higher than 1. So until we figure out why
         this is, we set MAX_SCORE to 1 and ignore (and log) items with any value higher than that.
      */
-    private static final float MAX_SCORE = 1F;
+    private static final float MAX_SCORE = 2F;
 
     private RecommendSettings config;
     private MilvusClient milvusClient;
