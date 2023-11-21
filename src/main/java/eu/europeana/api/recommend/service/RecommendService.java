@@ -153,9 +153,9 @@ public class RecommendService {
             LOG.error("No response from Embeddings API for set {}", set.getId());
             return Collections.emptyMap();
         }
-        List<Double> vector = EmbeddingsService.getVectors(embeddingResponse);
+        List<Float> vector = EmbeddingsService.getVectors(embeddingResponse);
         LOG.trace("Vector for set {} = {}", set.getId(), vector);
-        return milvus.getSimilarRecords(List.of(MilvusUtils.convertToFloatList(vector)), pageSize, setRecordIds, WEIGHT_SET_METADATA);
+        return milvus.getSimilarRecords(List.of(vector), pageSize, setRecordIds, WEIGHT_SET_METADATA);
     }
 
     private Map<String, Recommendation> getRecommendationsForSetItems(List<RecordId> setRecordIds, int pageSize) {
@@ -285,9 +285,9 @@ public class RecommendService {
             LOG.error("No response from Embeddings API for entity {}/{}", entity.getType(), entity.getId());
             return Collections.emptyMap();
         }
-        List<Double> vector = EmbeddingsService.getVectors(embeddingResponse);
+        List<Float> vector = EmbeddingsService.getVectors(embeddingResponse);
         LOG.trace("Vector for entity {}/{} = {}", entity.getType(), entity.getId(), vector);
-        return milvus.getSimilarRecords(List.of(MilvusUtils.convertToFloatList(vector)), pageSize, recordsToExclude, WEIGHT_ENTITY_METADATA);
+        return milvus.getSimilarRecords(List.of(vector), pageSize, recordsToExclude, WEIGHT_ENTITY_METADATA);
     }
 
     List<Recommendation> mergeAndSortRecommendations(Map<String, Recommendation> map1, Map<String, Recommendation> map2) {

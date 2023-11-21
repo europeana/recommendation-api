@@ -129,7 +129,7 @@ public class MilvusService {
     public List<List<Float>> getVectorForRecords(List<RecordId> recordIds) {
         List<String> milvusRecordIds = new ArrayList<>(recordIds.size());
         for (RecordId recordId : recordIds) {
-            milvusRecordIds.add(recordId.getMilvusIdQuotes());
+            milvusRecordIds.add(recordId.getMilvusId());
         }
 
         R<GetResponse> response = MilvusUtils.checkResponse(
