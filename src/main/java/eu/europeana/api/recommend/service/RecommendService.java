@@ -96,8 +96,6 @@ public class RecommendService {
      */
     public Mono<SearchApiResponse> getRecommendationsForSet(String setId, int pageSize, int page, String seed,
                                                             String apikey, String token) throws RecommendException {
-        // TODO better use of Mono and parallelism
-
         // 1. get relevant data from setId
         Set set = null;
         try {
@@ -124,6 +122,7 @@ public class RecommendService {
         Map<String, Recommendation> recommendMetadata = getRecommendationsForSetMetadata(set, setRecordIds, pageSize);
         LOG.trace("{} recommendations for set meta data {} = {}", recommendMetadata.size(), set.getId(), recommendMetadata);
 
+        // TODO run getRecommendationsForSetItems in parallel with getRecommendationsForSetMetadata! (better use of Mono)
         // 4. get milvus recommendations for the items in the set
         Map<String, Recommendation> recommendItems = getRecommendationsForSetItems(setRecordIds, pageSize);
         LOG.error("{} recommendations for set items {} = {}", recommendItems.size(), set.getId(), recommendItems);
@@ -180,7 +179,8 @@ public class RecommendService {
      */
     public Mono<SearchApiResponse> getRecommendationsForEntity(String type, int id, int pageSize, String apikey, String token)
         throws RecommendException {
-        // TODO better use of Mono and parallelism
+
+        // 1. Get Entity data
         Entity entity = null;
         try {
             entity = entityApi.getEntity(type, id, apikey, token).block();
@@ -192,27 +192,28 @@ public class RecommendService {
             throw e; // rethrow other errors than 404
         }
 
-        // 1. get recommendations for items in associated set (if any), plus the item ids
+        // TODO run getRecommendationsForEntitySetItems in parallel with getRecommendationsForEntityMetadata! (better use of Mono)
+        // 2. get recommendations for items in associated set (if any), plus the item ids
         EntitySetItemsResult recommendEntitySetItems = getRecommendationsForEntitySetItems(type, id, pageSize, apikey, token);
         List<RecordId> setRecords = recommendEntitySetItems.itemsInSet;
         Map<String, Recommendation> recommendSetItems = recommendEntitySetItems.recommendations;
         LOG.trace("{} recommendations for entity set items {}/{} = {}", recommendSetItems.size(), type, id, recommendSetItems);
 
-        // 2. get recommendations for entity metadata
+        // 3. get recommendations for entity metadata
         Map<String, Recommendation> recommendMetadata = Collections.emptyMap();
         if (entity != null) {
             recommendMetadata = getRecommendationsForEntityMetadata(entity, pageSize, setRecords);
             LOG.trace("{} recommendations for entity metadata {}/{} = {}", recommendMetadata.size(), type, id, recommendMetadata);
         }
 
-        // 3. Merge recommendations, then sort and get the most relevant ones
+        // 4. Merge recommendations, then sort and get the most relevant ones
         List<Recommendation> result = mergeAndSortRecommendations(recommendMetadata, recommendSetItems);
         if (result.size() > pageSize) {
             result = result.subList(0, pageSize);
         }
         LOG.trace("Sorted recommendations for entity {}/{} = {}", type, id, result);
 
-        // 6. generate response using Search API
+        // 5. generate response using Search API
         return searchApi.generateResponse(result, pageSize, apikey, token);
     }
 
@@ -254,15 +255,17 @@ public class RecommendService {
         // generate vectors
         if (entitySet != null) {
             result.itemsInSet = entitySet.getItemsRecordId();
-            List<List<Float>> vectors = milvus.getVectorForRecords(result.itemsInSet);
-            LOG.trace("Vectors of items associated with entity {}/{} = {}", type, id, vectors);
+            if (result.itemsInSet.size() != 0) {
+                List<List<Float>> vectors = milvus.getVectorForRecords(result.itemsInSet);
+                LOG.trace("Vectors of items associated with entity {}/{} = {}", type, id, vectors);
 
-            if (vectors.isEmpty()) {
-                LOG.trace("No recommendations for entity set items {}/{}", type, id);
-            } else {
-                // Use vectors to get recommendations from Milvus
-                result.recommendations = milvus.getSimilarRecords(vectors, pageSize, result.itemsInSet, WEIGHT_ENTITY_SET_ITEMS);
-                LOG.trace("{} recommendations for entity set items {}/{}: {}", result.recommendations.size(), type, id, result.recommendations);
+                if (vectors.isEmpty()) {
+                    LOG.trace("No recommendations for entity set items {}/{}", type, id);
+                } else {
+                    // Use vectors to get recommendations from Milvus
+                    result.recommendations = milvus.getSimilarRecords(vectors, pageSize, result.itemsInSet, WEIGHT_ENTITY_SET_ITEMS);
+                    LOG.trace("{} recommendations for entity set items {}/{}: {}", result.recommendations.size(), type, id, result.recommendations);
+                }
             }
         }
         return result;
