@@ -1,10 +1,12 @@
 package eu.europeana.api.recommend.web;
 
 import eu.europeana.api.recommend.config.RecommendSettings;
+import eu.europeana.api.recommend.service.MilvusService;
 import eu.europeana.api.recommend.service.RecommendService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -12,12 +14,13 @@ import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(RecommendController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class RecommendControllerTest {
 
     public static final String AUTH_HEADER     = "Authorization";
     public static final String TOKEN           = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYXpwIjoidGVzdF9rZXkiLCJqdGkiOiJiODM4MDM3Ni1mYThhLTQxN2ItODg0NC0xZTQ4ZjBlNDkyNjkiLCJpYXQiOjE1OTg0NTAwNzIsImV4cCI6MTU5ODQ1MzY3Mn0.in-NrpzLE4NVptQJUbFzEeWUDMpZShlad3GRIxgUlVk";
-     private static final String PAGE_PARAM     = "page";
+    private static final String PAGE_PARAM     = "page";
     private static final String SEED_PARAM     = "seed";
 
     public static final String X_API_KEY_HEADER     = "X-Api-Key";
@@ -29,67 +32,69 @@ public class RecommendControllerTest {
     private RecommendSettings recommendSettings; // to prevent loading non-existing properties
     @MockBean
     private RecommendService recommendService;
+    @MockBean
+    MilvusService milvusService;
 
 
     @Test
     public void testRecordOkApiKey() throws Exception {
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/", "a", "1")
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}", "a", "1")
                         .param("wskey", "test"))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void testRecordOkToken() throws Exception {
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/","a", "1")
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}","a", "1")
                         .header(AUTH_HEADER, TOKEN))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void testRecordMissingCredentials() throws Exception {
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/","a", "1"))
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}","a", "1"))
                 .andExpect(status().is(401));
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/","a", "1")
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}","a", "1")
                         .param("wskey", ""))
                 .andExpect(status().is(401));
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/","a", "1"))
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}","a", "1"))
                 .andExpect(status().is(401));
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/","a", "1")
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}","a", "1")
                         .header(AUTH_HEADER, ""))
                 .andExpect(status().is(401));
     }
 
     @Test
     public void testRecordInvalidId() throws Exception {
-        mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/","ValidSetId", "But(Invalid)LocalId$")
+        mockMvc.perform(get("/recommend/record/{datasetId}/{localId}","ValidSetId", "But(Invalid)LocalId$")
                         .header(AUTH_HEADER, TOKEN))
                 .andExpect(status().is(400));
     }
 
     @Test
     public void testRecordInvalidToken() throws Exception {
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/","a", "1")
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}","a", "1")
                         .header(AUTH_HEADER, "invalidToken"))
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     public void testSetOkApiKey() throws Exception {
-        this.mockMvc.perform(get("/recommend/set/{setId}/", 2)
+        this.mockMvc.perform(get("/recommend/set/{setId}", 2)
                         .param("wskey", "test"))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void testSetOkApiToken() throws Exception {
-        this.mockMvc.perform(get("/recommend/set/{setId}/", 2)
+        this.mockMvc.perform(get("/recommend/set/{setId}", 2)
                         .header(AUTH_HEADER, TOKEN))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void testSetInvalidId() throws Exception {
-        this.mockMvc.perform(get("/recommend/set/{setId}/", "invalid")
+        this.mockMvc.perform(get("/recommend/set/{setId}", "invalid")
                         .header(AUTH_HEADER, TOKEN))
                 .andExpect(status().is(400));
     }
@@ -136,7 +141,7 @@ public class RecommendControllerTest {
 
     @Test
     public void testRecordOkWithApiKeyOnlyInHeader() throws Exception {
-        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}/", "a", "1")
+        this.mockMvc.perform(get("/recommend/record/{datasetId}/{localId}", "a", "1")
                 .header(X_API_KEY_HEADER, "test"))
             .andExpect(status().isOk());
 
@@ -152,7 +157,7 @@ public class RecommendControllerTest {
 
     @Test
     public void testSetOkWithApiKeyOnlyInHeader() throws Exception {
-        this.mockMvc.perform(get("/recommend/set/{setId}/", 2)
+        this.mockMvc.perform(get("/recommend/set/{setId}", 2)
                 .header(X_API_KEY_HEADER, "test"))
             .andExpect(status().isOk());
     }

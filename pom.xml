@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana</groupId>
         <artifactId>europeana-parent-pom</artifactId>
-        <version>2.4</version>
+        <version>2.5</version>
     </parent>
 
     <groupId>eu.europeana.api</groupId>
@@ -21,9 +21,10 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <spring-boot.version>2.7.14</spring-boot.version>
-        <springdoc.version>1.7.0</springdoc.version>
-        <commons.lang3.version>3.13.0</commons.lang3.version>
+        <spring-boot.version>3.2.4</spring-boot.version>
+        <springdoc-openapi.version>2.4.0</springdoc-openapi.version>
+        <api-commons.version>0.1</api-commons.version>
+        <commons.lang3.version>3.14.0</commons.lang3.version>
 
         <!-- We import the recommendations updater so we are sure the used Milvus version and field names are in sync -->
         <recommendations-updater.version>1.1.0-SNAPSHOT</recommendations-updater.version>
@@ -73,17 +74,15 @@
 
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>${springdoc.version}</version>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc-openapi.version}</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
-        <!-- Temporarily added to prevent Milvus from using commons-text-1.6 with CVE-2022-42889 -->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.commons</groupId>-->
-<!--            <artifactId>commons-text</artifactId>-->
-<!--            <version>1.10.0</version>-->
-<!--        </dependency>-->
+        <!-- Use commons so we always return errors in json format -->
+        <dependency>
+            <groupId>eu.europeana.api</groupId>
+            <artifactId>commons-sb3-error</artifactId>
+            <version>${api-commons.version}</version>
+        </dependency>
 
         <!-- Import common functionality (Milvus and db constants)-->
         <dependency>
@@ -134,7 +133,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>3.12.4</version>
+            <version>5.11.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -146,19 +145,12 @@
         <finalName>${project.artifactId}</finalName>
 
         <plugins>
-            <!-- JUnit 5 requires Surefire version 2.22.0 or higher -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
-            </plugin>
-
             <plugin>
                 <!-- This will be active when running the verify or install goal
                      To skip (e.g. during debugging) use 'mvn clean package')-->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>8.3.1</version>
+                <version>8.4.3</version>
                 <configuration>
                     <knownExploitedUrl>http://artifactory.eanadev.org/artifactory/ext-release-local/gov/cisa/www/known_exploited_vulnerabilities.json</knownExploitedUrl>
                     <failBuildOnCVSS>8</failBuildOnCVSS>
