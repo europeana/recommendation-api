@@ -35,7 +35,7 @@ public class RecommendSettings {
     @Value("${entity.api.endpoint}")
     private String entityApiEndpoint;
 
-    @Value("${embeddings.endpoint}")
+    @Value("${embedding.api.endpoint}")
     private String embeddingsApiEndpoint;
 
     @Value("${milvus.hostname}")
