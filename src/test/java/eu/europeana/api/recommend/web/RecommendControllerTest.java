@@ -1,10 +1,12 @@
 package eu.europeana.api.recommend.web;
 
 import eu.europeana.api.recommend.config.RecommendSettings;
+import eu.europeana.api.recommend.service.MilvusService;
 import eu.europeana.api.recommend.service.RecommendService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -12,7 +14,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(RecommendController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class RecommendControllerTest {
 
     public static final String AUTH_HEADER     = "Authorization";
@@ -29,6 +32,8 @@ public class RecommendControllerTest {
     private RecommendSettings recommendSettings; // to prevent loading non-existing properties
     @MockBean
     private RecommendService recommendService;
+    @MockBean
+    MilvusService milvusService;
 
 
     @Test

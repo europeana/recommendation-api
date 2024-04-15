@@ -99,7 +99,7 @@ public class WebClients {
 
     private ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(response -> {
-            LOG.trace("Response: {} {}", response.statusCode().value(), response.statusCode().getReasonPhrase());
+            LOG.trace("Response: {}", response.statusCode().value());
             return Mono.just(response);
         });
     }
