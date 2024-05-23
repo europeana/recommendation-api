@@ -2,6 +2,7 @@ package eu.europeana.api.recommend.model;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -16,12 +17,17 @@ public class SearchApiResponse implements Serializable {
     protected boolean success = true;
     protected int      itemsCount    = 0 ;
     protected int      totalResults  = 0 ;
-    private Map[] items         = new Map[0];
+    @SuppressWarnings("java:S1948") // Jackson will make sure we use a serializable map
+    private Map[] items = new LinkedHashMap[0];
 
     SearchApiResponse() {
         // empty constructor required by Jackson
     }
 
+    /**
+     * Initialize a new Search API response with the provided API key
+     * @param apikey API key to include in the response
+     */
     public SearchApiResponse(String apikey) {
         this.apikey = apikey;
     }

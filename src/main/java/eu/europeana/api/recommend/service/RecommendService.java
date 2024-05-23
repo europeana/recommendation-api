@@ -34,6 +34,8 @@ public class RecommendService {
     private static final int WEIGHT_ENTITY_METADATA  = 10;
     private static final int WEIGHT_ENTITY_SET_ITEMS = 1;
 
+    private static final String NOT_FOUND = "not found";
+
     private final MilvusService milvus;
     private final EmbeddingsService embeddings;
     private final SearchApiService searchApi;
@@ -67,7 +69,7 @@ public class RecommendService {
         if (vector == null || vector.isEmpty()) {
             LOG.warn("Record {} not in Milvus", recordId);
             if (!searchApi.checkRecordExists(recordId, apikey, token)) {
-                throw new RecordNotFoundException("Record with id " + recordId.getEuropeanaId() + " not found");
+                throw new RecordNotFoundException("Record with id " + recordId.getEuropeanaId() + " " + NOT_FOUND);
             }
         } else {
             LOG.trace("Vector for record {} = {}", recordId, vector);
@@ -102,11 +104,11 @@ public class RecommendService {
             set = setApi.getSetData(setId, apikey, token).block();
             LOG.trace("Contents of set {} = {}", setId, set);
             if (set == null) {
-                throw new SetNotFoundException("Set " + setId + " not found");
+                throw new SetNotFoundException("Set " + setId + " " + NOT_FOUND);
             }
         } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().toLowerCase(Locale.getDefault()).contains("not found")) {
-                throw new SetNotFoundException("Set " + setId + " not found");
+            if (e.getMessage() != null && e.getMessage().toLowerCase(Locale.getDefault()).contains(NOT_FOUND)) {
+                throw new SetNotFoundException("Set " + setId + " " + NOT_FOUND);
             }
             throw e; // rethrow other errors than 404
         }
@@ -186,8 +188,8 @@ public class RecommendService {
             entity = entityApi.getEntity(type, id, apikey, token).block();
             LOG.trace("Contents of entity {}/{} = {}", type, id, entity);
         } catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().toLowerCase(Locale.getDefault()).contains("not found")) {
-                throw new EntityNotFoundException("Entity " + type + "/" + id +" not found");
+            if (e.getMessage() != null && e.getMessage().toLowerCase(Locale.getDefault()).contains(NOT_FOUND)) {
+                throw new EntityNotFoundException("Entity " + type + "/" + id + " " + NOT_FOUND);
             }
             throw e; // rethrow other errors than 404
         }
@@ -255,7 +257,7 @@ public class RecommendService {
         // generate vectors
         if (entitySet != null) {
             result.itemsInSet = entitySet.getItemsRecordId();
-            if (result.itemsInSet.size() != 0) {
+            if (!result.itemsInSet.isEmpty()) {
                 List<List<Float>> vectors = milvus.getVectorForRecords(result.itemsInSet);
                 LOG.trace("Vectors of items associated with entity {}/{} = {}", type, id, vectors);
 

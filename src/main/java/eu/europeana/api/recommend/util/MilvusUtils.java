@@ -5,7 +5,6 @@ import io.milvus.param.R;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Utility functions to using Milvus recommendations database.
@@ -60,7 +59,7 @@ public final class MilvusUtils {
      * @return list of float
      */
     public static List<Float> convertToFloatList(List<Double> listToConvert) {
-        return listToConvert.stream().map(Double::floatValue).collect(Collectors.toList());
+        return listToConvert.stream().map(Double::floatValue).toList();
     }
 
 }
