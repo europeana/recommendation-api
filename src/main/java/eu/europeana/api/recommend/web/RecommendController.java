@@ -42,6 +42,7 @@ public class RecommendController {
   private static final String ENTITY_TYPE_REGEX = "^(?i)(agent|concept|place)*$";
   private static final String EUROPEANA_ID_FIELD_REGEX = "^\\w*$";
   private static final String APIKEY_REGEX = "^\\w*$";
+  private static final String TOKEN_REGEX = "^Bearer\\s[\\w-]*\\.[\\w-]*\\.[\\w-]*$|$"; // also allow no header
   private static final String SEED_REGEX = "-?[1-9]\\d*|0";
   private static final String DEFAULT_PAGE_SIZE = "10";
   private static final int MAX_PAGE_SIZE = 50;
@@ -57,6 +58,7 @@ public class RecommendController {
   private static final String INVALID_SEED_MESSAGE = "Invalid seed value. Seed is an Integer, only numbers are allowed";
 
   private static final String INVALID_APIKEY_MESSAGE = "Invalid API key format";
+  private static final String INVALID_TOKEN_MESSAGE = "Invalid authentication header token";
 
   private static final java.util.regex.Pattern EUROPEANA_ID = java.util.regex.Pattern.compile("^/\\w*/\\w*$");
 
@@ -86,21 +88,23 @@ public class RecommendController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> recommendRecord(
       @PathVariable(value = "datasetId")
-      @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
+          @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
       @PathVariable(value = "localId")
-      @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
+          @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
       @RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-      @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-      @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
+          @Min(value = 1, message = INCORRECT_PAGE_SIZE)
+          @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
       @RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE)
-      @Min(value = 0, message = INCORRECT_PAGE)
-      @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
+          @Min(value = 0, message = INCORRECT_PAGE)
+          @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
       @RequestParam(value = "seed", required = false)
-      @Pattern(regexp = SEED_REGEX, message = INVALID_SEED_MESSAGE) String seed,
+          @Pattern(regexp = SEED_REGEX, message = INVALID_SEED_MESSAGE) String seed,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String xApiKey)
       throws RecommendException {
     String apikey = extractApiKey(authToken, wskey, xApiKey);
     Mono<SearchApiResponse> result = recommendService.getRecommendationsForRecord(new RecordId(datasetId, localId), pageSize, page, seed, apikey, authToken);
@@ -119,14 +123,16 @@ public class RecommendController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> acceptRecord(
       @PathVariable(value = "datasetId")
-      @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
+          @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
       @PathVariable(value = "localId")
-      @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
+          @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String xApiKey)
       throws RecommendException {
     String userId = extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -143,15 +149,17 @@ public class RecommendController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> rejectRecord(
       @PathVariable(value = "datasetId")
-      @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
+          @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String datasetId,
       @PathVariable(value = "localId")
-      @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
+          @Pattern(regexp = EUROPEANA_ID_FIELD_REGEX, message = INVALID_RECORD_ID_MESSAGE) String localId,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
-      throws RecommendException {
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String xApiKey)
+  throws RecommendException {
     String userId = extractUserFromToken(authToken);
     validateRecordIds(ids);
     recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_REJECT, userId,wskey, authToken);
@@ -175,20 +183,22 @@ public class RecommendController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> recommendSet(
       @PathVariable(value = "setId")
-      @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
+          @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
       @RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-      @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-      @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
+          @Min(value = 1, message = INCORRECT_PAGE_SIZE)
+          @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
       @RequestParam(value = "page", required = false, defaultValue = DEFAULT_PAGE)
-      @Min(value = 0, message = INCORRECT_PAGE)
-      @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
+          @Min(value = 0, message = INCORRECT_PAGE)
+          @Max(value = MAX_PAGE, message = INCORRECT_PAGE) int page,
       @RequestParam(value = "seed", required = false)
-      @Pattern(regexp = SEED_REGEX, message = INVALID_SEED_MESSAGE) String seed,
+          @Pattern(regexp = SEED_REGEX, message = INVALID_SEED_MESSAGE) String seed,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
-      throws RecommendException {
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String xApiKey)
+  throws RecommendException {
     String apikey = extractApiKey(authToken, wskey, xApiKey);
     Mono<SearchApiResponse> result = recommendService.getRecommendationsForSet(setId, pageSize,page, seed, apikey, authToken);
     if (result == null) {
@@ -206,13 +216,15 @@ public class RecommendController {
       consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> acceptSet(
       @PathVariable(value = "setId")
-      @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
+          @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
-      throws RecommendException {
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String xApiKey)
+  throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);
     recommendService.submitUserSignals(ids, RecommendationConstants.USER_SIGNAL_ACCEPT, userId,wskey, authToken);
@@ -228,12 +240,14 @@ public class RecommendController {
       consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> rejectSet(
       @PathVariable(value = "setId")
-      @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
+          @Pattern(regexp = SET_ID_REGEX, message = INVALID_SET_ID_MESSAGE) String setId,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String xApiKey)
       throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -258,16 +272,18 @@ public class RecommendController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> recommendEntity(
       @PathVariable(value = "type")
-      @Pattern(regexp = ENTITY_TYPE_REGEX, message = INVALID_ENTITY_TYPE_MESSAGE) String type,
+          @Pattern(regexp = ENTITY_TYPE_REGEX, message = INVALID_ENTITY_TYPE_MESSAGE) String type,
       @PathVariable(value = "id")
-      @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
+          @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
       @RequestParam(value = "pageSize", required = false, defaultValue = DEFAULT_PAGE_SIZE)
-      @Min(value = 1, message = INCORRECT_PAGE_SIZE)
-      @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
+          @Min(value = 1, message = INCORRECT_PAGE_SIZE)
+          @Max(value = MAX_PAGE_SIZE, message = INCORRECT_PAGE_SIZE) int pageSize,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE)String xApiKey)
       throws RecommendException {
     String apikey = extractApiKey(authToken, wskey, xApiKey);
     Mono<SearchApiResponse> result = recommendService.getRecommendationsForEntity(type,Integer.valueOf(id), pageSize,  apikey, authToken);
@@ -288,14 +304,16 @@ public class RecommendController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> acceptEntity(
       @PathVariable(value = "type")
-      @Pattern(regexp = ENTITY_TYPE_REGEX, message = INVALID_ENTITY_TYPE_MESSAGE) String type,
+          @Pattern(regexp = ENTITY_TYPE_REGEX, message = INVALID_ENTITY_TYPE_MESSAGE) String type,
       @PathVariable(value = "id")
-      @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
+          @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE)String xApiKey)
       throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -312,14 +330,16 @@ public class RecommendController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> rejectEntity(
       @PathVariable(value = "type")
-      @Pattern(regexp = ENTITY_TYPE_REGEX, message = INVALID_ENTITY_TYPE_MESSAGE) String type,
+          @Pattern(regexp = ENTITY_TYPE_REGEX, message = INVALID_ENTITY_TYPE_MESSAGE) String type,
       @PathVariable(value = "id")
-      @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
+          @Pattern(regexp = ENTITY_ID_REGEX, message = INVALID_ENTITY_ID_MESSAGE) String id,
       @RequestParam(value = "wskey", required = false)
-      @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String wskey,
       @Valid @RequestBody String[] ids,
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authToken,
-      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false) String xApiKey)
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+          @Pattern(regexp = TOKEN_REGEX, message = INVALID_TOKEN_MESSAGE) String authToken,
+      @RequestHeader(value = RequestUtils.X_API_KEY_HEADER, required = false)
+          @Pattern(regexp = APIKEY_REGEX, message = INVALID_APIKEY_MESSAGE) String xApiKey)
       throws RecommendException {
     String userId =  extractUserFromToken(authToken);
     validateRecordIds(ids);
@@ -334,58 +354,56 @@ public class RecommendController {
    * apikey - from the token provided or wskey passed or xApiKey passed. Note that
    * we don't actually do API key validation ourselves. It's done implicitely when reusing API key
    */
-  private static String extractApiKey(String authToken, String wskey, String xApiKey)
-      throws InvalidTokenException, NoCredentialsException {
-
-    String apiKeyValue;
-    if (StringUtils.isNotBlank(authToken)) {
-      apiKeyValue = TokenUtils.getApiKey(authToken);
-      LOG.debug("Using API key {} from token", apiKeyValue);
-      return apiKeyValue;
+    @SuppressWarnings("javasecurity:S5145") // we only log in debug mode, plus we do validation of values first
+    private static String extractApiKey(String authToken, String wskey, String xApiKey)
+            throws InvalidTokenException, NoCredentialsException {
+        String apiKeyValue;
+        if (StringUtils.isNotBlank(authToken)) {
+            apiKeyValue = TokenUtils.getApiKey(authToken);
+            LOG.debug("Using API key {} from token", apiKeyValue);
+            return apiKeyValue;
+        }
+        if(StringUtils.isNotBlank(xApiKey)){
+            apiKeyValue = xApiKey;
+            LOG.debug("Using received API key from header x_api_key {}", apiKeyValue);
+            return apiKeyValue;
+        }
+        if(StringUtils.isNotBlank(wskey)) {
+            apiKeyValue = wskey;
+            LOG.debug("Using received API key {}", apiKeyValue);
+            return apiKeyValue;
+        }
+        throw new NoCredentialsException();
     }
-    if(StringUtils.isNotBlank(xApiKey)){
-     apiKeyValue = xApiKey;
-     LOG.debug("Using received API key from header x_api_key {}", apiKeyValue);
-      return apiKeyValue;
-   }
-    if(StringUtils.isNotBlank(wskey)) {
-      apiKeyValue = wskey;
-      LOG.debug("Using received API key {}", apiKeyValue);
-      return apiKeyValue;
-    }
-    throw new NoCredentialsException();
-  }
 
   /**
    * Get the user from the authToken passed.
      Used for accept and reject recommendation methods.
    */
-  private static String extractUserFromToken(String authToken)
-      throws NoCredentialsException, InvalidTokenException {
-
+    private static String extractUserFromToken(String authToken) throws NoCredentialsException, InvalidTokenException {
         if (StringUtils.isBlank(authToken)) {
-      throw new NoCredentialsException("User is not authorised to perform this action");
+          throw new NoCredentialsException("User is not authorised to perform this action");
+        }
+        String userId = TokenUtils.getUserId(authToken);
+        LOG.debug("User {} fetched from the token", userId);
+        return userId;
     }
-    String userId = TokenUtils.getUserId(authToken);
-    LOG.debug("User {} fetched from the token", userId);
-    return userId;
-  }
 
   /**
    * Validate the received set of ids in an accept or reject request
    */
-  private void validateRecordIds(String[] ids) throws RecommendException {
-    if (ids == null || ids.length == 0) {
-      throw new InvalidRecordIdException("No ids provided");
+    private void validateRecordIds(String[] ids) throws RecommendException {
+        if (ids == null || ids.length == 0) {
+            throw new InvalidRecordIdException("No ids provided");
+        }
+        for (String id : ids) {
+            if (!isValidRecordId(id)) {
+                throw new InvalidRecordIdException(id);
+            }
+        }
     }
-    for (String id : ids) {
-      if (!isValidRecordId(id)) {
-        throw new InvalidRecordIdException(id);
-      }
-    }
-  }
 
-  private boolean isValidRecordId(String id) {
-    return EUROPEANA_ID.matcher(id).matches();
-  }
+    private boolean isValidRecordId(String id) {
+        return EUROPEANA_ID.matcher(id).matches();
+    }
 }

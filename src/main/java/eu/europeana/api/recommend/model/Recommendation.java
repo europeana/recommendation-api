@@ -13,6 +13,7 @@ import java.util.Objects;
  * but we can modify with a weight factor so score can become larger than 1
  * @author Patrick Ehlert
  */
+@SuppressWarnings("java:S2164") // float work fine for our purposes, no need to use double
 public class Recommendation implements Comparable<Recommendation>, Serializable {
 
     @Serial
@@ -36,7 +37,7 @@ public class Recommendation implements Comparable<Recommendation>, Serializable 
     }
 
     public float getScore() {
-        return score;
+        return this.score;
     }
 
     /**
