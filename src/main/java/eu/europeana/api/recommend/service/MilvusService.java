@@ -180,6 +180,7 @@ public class MilvusService {
      */
     // TODO Milvus v2.4. is said to support doubles, so  when that is out there should be no need for data conversion
     //  for data from Embeddings API see also https://github.com/milvus-io/milvus/discussions/18094
+    @SuppressWarnings("java:S2164") // float works fine for our purposes, no need to use double
     public Map<String, Recommendation> getSimilarRecords(List<List<Float>> vectors, int pageSize, List<RecordId> recordIdsToExclude, int weight) {
         // create request
         SearchParam.Builder builder = SearchParam.newBuilder()

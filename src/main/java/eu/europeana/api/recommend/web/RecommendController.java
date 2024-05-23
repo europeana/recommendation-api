@@ -10,7 +10,11 @@ import eu.europeana.api.recommend.service.RecommendService;
 import eu.europeana.api.recommend.util.RecommendationConstants;
 import eu.europeana.api.recommend.util.RequestUtils;
 import eu.europeana.api.recommend.util.TokenUtils;
-import io.micrometer.core.instrument.util.StringUtils;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
@@ -20,11 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Pattern;
 
 /**
  * Controller to handle recommendation requests
@@ -79,7 +78,8 @@ public class RecommendController {
    * @param page      optional, extra page of similar records, between 1 and 40
    * @param seed      // TODO not supported yet
    * @param wskey     optional API key
-   * @param authToken optional authentication token // TODO not validated yet
+   * @param authToken optional authentication token
+   * @param xApiKey   optional apikey header
    * @return Search API json response with similar records data
    * @throws RecommendException when there's a problem retrieving similar records
    */
@@ -174,7 +174,8 @@ public class RecommendController {
    * @param page      optional, extra page of similar records, between 1 and 40
    * @param seed      // TODO not supported yet
    * @param wskey     optional API key
-   * @param authToken optional authentication token // TODO not validated yet
+   * @param authToken optional authentication token
+   * @param xApiKey   optional apikey header
    * @return Search API json response with similar records data
    * @throws RecommendException when there's a problem retrieving similar records
    */
@@ -263,7 +264,8 @@ public class RecommendController {
    * @param id        id number of the entity
    * @param pageSize  optional, number of similar records to return, between 1 and 50
    * @param wskey     optional API key
-   * @param authToken optional authentication token // TODO not validated yet
+   * @param authToken optional authentication token
+   * @param xApiKey   optional apikey header
    * @return Search API json response with similar records data
    * @throws RecommendException when there's a problem retrieving similar records
    */
@@ -298,9 +300,9 @@ public class RecommendController {
    * @deprecated
    */
   @Deprecated(since = "Aug 2023")
-  @PostMapping(value = {"/recommend/entity/{type}/{base}/{id}.json",
-      "/recommend/entity/{type}/{base}/{id}",
-      "/entity/{type}/{base}/{id}/recommend.json", "/entity/{type}/{base}/{id}/recommend"},
+  @PostMapping(value = {"/recommend/entity/{type}/{id}.json",
+      "/recommend/entity/{type}/{id}",
+      "/entity/{type}/{id}/recommend.json", "/entity/{type}/{id}/recommend"},
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> acceptEntity(
       @PathVariable(value = "type")
@@ -325,8 +327,8 @@ public class RecommendController {
    * @deprecated
    */
   @Deprecated(since = "Aug 2023")
-  @DeleteMapping(value = {"/recommend/entity/{type}/{base}/{id}.json","/recommend/entity/{type}/{base}/{id}",
-      "/entity/{type}/{base}/{id}/recommend.json", "/entity/{type}/{base}/{id}/recommend"},
+  @DeleteMapping(value = {"/recommend/entity/{type}/{id}.json","/recommend/entity/{type}/{id}",
+      "/entity/{type}/{id}/recommend.json", "/entity/{type}/{id}/recommend"},
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<SearchApiResponse> rejectEntity(
       @PathVariable(value = "type")
