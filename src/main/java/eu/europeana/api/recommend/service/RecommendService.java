@@ -126,8 +126,13 @@ public class RecommendService {
 
         // TODO run getRecommendationsForSetItems in parallel with getRecommendationsForSetMetadata! (better use of Mono)
         // 4. get milvus recommendations for the items in the set
-        Map<String, Recommendation> recommendItems = getRecommendationsForSetItems(setRecordIds, pageSize);
-        LOG.error("{} recommendations for set items {} = {}", recommendItems.size(), set.getId(), recommendItems);
+        Map<String, Recommendation> recommendItems = Collections.emptyMap();
+        if (setRecordIds.isEmpty()) {
+            LOG.trace("No set items found");
+        } else {
+            recommendItems = getRecommendationsForSetItems(setRecordIds, pageSize);
+            LOG.trace("{} recommendations for set items {} = {}", recommendItems.size(), set.getId(), recommendItems);
+        }
 
         // 5. merge, sort per weight and get most relevant ones
         List<Recommendation> result = mergeAndSortRecommendations(recommendMetadata, recommendItems);
