@@ -59,7 +59,7 @@ public class EmbeddingsService {
             LOG.trace("Description for set {} to send to Embeddings API is {}", set.getId(), description);
         }
 
-        EmbeddingRecord embedding = new EmbeddingRecord(set.getId(), // TODO not sure what's better, empty string or an id
+        EmbeddingRecord embedding = new EmbeddingRecord("", // sending empty id sometimes give slightly better results (see EA-3893)
                 new String[] {(title == null ? "" : title)},
                 new String[] {(description == null ? "" : description)},
                 null, null, null, null);
