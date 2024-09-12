@@ -187,7 +187,7 @@ public class MilvusService {
                 .withCollectionName(config.getMilvusCollection())
                 .withMetricType(MilvusConstants.INDEX_METRIC_TYPE) // has to match type in index
                 .withOutFields(List.of(MilvusConstants.RECORD_ID_FIELD_NAME))
-                .withTopK(pageSize) // max 3 results
+                .withTopK(pageSize) // max number of results
                 .withVectors(vectors)
                 .withVectorFieldName(MilvusConstants.VECTOR_FIELD_NAME);
         if (recordIdsToExclude != null && !recordIdsToExclude.isEmpty()) {

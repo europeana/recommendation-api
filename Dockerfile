@@ -3,7 +3,7 @@ FROM tomcat:10.0-jre17
 LABEL org.opencontainers.image.vendor="Europeana Foundation" \
       org.opencontainers.image.authors="api@europeana.eu" \
       org.opencontainers.image.documentation="https://pro.europeana.eu/page/apis" \
-      org.opencontainers.image.source="https://github.com/europeana/" \
+      org.opencontainers.image.source="https://github.com/europeana/recommendation-api" \
       org.opencontainers.image.licenses="EUPL-1.2"
 
 WORKDIR /usr/local/tomcat/webapps

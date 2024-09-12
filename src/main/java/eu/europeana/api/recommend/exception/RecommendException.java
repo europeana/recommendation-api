@@ -1,12 +1,14 @@
 package eu.europeana.api.recommend.exception;
 
+import eu.europeana.api.commons_sb3.error.EuropeanaApiException;
+
 /**
  * Base error class for this application
  *
  * @author Patrick Ehlert
  * Created on 22 Jul 2020
  */
-public class RecommendException extends Exception {
+public class RecommendException extends EuropeanaApiException {
 
     public RecommendException(String msg, Throwable t) {
         super(msg, t);
