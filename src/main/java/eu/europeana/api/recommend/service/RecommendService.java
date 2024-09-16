@@ -125,6 +125,8 @@ public class RecommendService {
         LOG.trace("{} recommendations for set meta data {} = {}", recommendMetadata.size(), set.getId(), recommendMetadata);
 
         // TODO run getRecommendationsForSetItems in parallel with getRecommendationsForSetMetadata! (better use of Mono)
+        // 2024-09-16: PE Note that as part of ticket EA-3933 and changes to Set API we no longer return the items in a set so this part
+        // won't be activated
         // 4. get milvus recommendations for the items in the set
         Map<String, Recommendation> recommendItems = Collections.emptyMap();
         if (setRecordIds.isEmpty()) {
