@@ -35,9 +35,9 @@ public class SetApiService {
      * @param token optional, if empty the apikey parameter is used
      * @return set object
      */
-    public Mono<Set> getSetData(String setId, String apikey,String token) {
-        String query = setId
-            + "?pageSize=" + MAX_SET_ITEMS;
+    public Mono<Set> getSetData(String setId, String apikey, String token) {
+        String query = setId;
+            //+ "?pageSize=" + MAX_SET_ITEMS
             //+ "&profile=standard;    // No longer possible to sent with new Set API, instead we retrieve only title and description
         return this.webClient.get()
                 .uri(query)
@@ -60,7 +60,6 @@ public class SetApiService {
         query.append("&qf=subject:").append(entityUri);
         query.append("&pageSize=").append(MAX_SET_ITEMS);
         query.append("&profile=standard");
-
 
         return this.webClient.get()
                 .uri(query.toString())
