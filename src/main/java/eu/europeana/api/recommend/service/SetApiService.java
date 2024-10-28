@@ -28,16 +28,17 @@ public class SetApiService {
 
     /**
      * Return the relevant set data for doing a set recommendation based on its metadata
+     * 2024-09-16: PE Note that as part of ticket EA-3933 and changes to Set API we no longer return the items in a set!
+     *
      * @param setId the id of the set to retrieve
      * @param apikey optional, if empty apikey  is not included (authToken should be provided)
      * @param token optional, if empty the apikey parameter is used
      * @return set object
      */
-    public Mono<Set> getSetData(String setId, String apikey,String token) {
-        String query = setId
-            + "?pageSize=" + MAX_SET_ITEMS
-            + "&profile=standard";
-
+    public Mono<Set> getSetData(String setId, String apikey, String token) {
+        String query = setId;
+            //+ "?pageSize=" + MAX_SET_ITEMS
+            //+ "&profile=standard;    // No longer possible to sent with new Set API, instead we retrieve only title and description
         return this.webClient.get()
                 .uri(query)
                 .headers(RequestUtils.generateHeaders(token,apikey))
@@ -59,7 +60,6 @@ public class SetApiService {
         query.append("&qf=subject:").append(entityUri);
         query.append("&pageSize=").append(MAX_SET_ITEMS);
         query.append("&profile=standard");
-
 
         return this.webClient.get()
                 .uri(query.toString())
