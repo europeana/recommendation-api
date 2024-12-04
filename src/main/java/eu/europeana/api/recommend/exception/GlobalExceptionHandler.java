@@ -3,10 +3,12 @@ package eu.europeana.api.recommend.exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europeana.api.commons_sb3.error.EuropeanaGlobalExceptionHandler;
 import eu.europeana.api.recommend.config.RecommendSettings;
 import eu.europeana.api.recommend.model.SearchApiError;
 import io.micrometer.core.instrument.util.StringEscapeUtils;
 import io.micrometer.core.instrument.util.StringUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -15,8 +17,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
 
 /**
@@ -26,7 +26,7 @@ import java.io.IOException;
  * Created on 22 Jul 2020
  */
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
 
     private static final Logger LOG = LogManager.getLogger(GlobalExceptionHandler.class);
 
@@ -51,23 +51,6 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Check if we should log an error and rethrow it
-     * @param e caught {@link RecommendException}
-     * @throws RecommendException rethrown exception
-     */
-    @ExceptionHandler(RecommendException.class)
-    public void handleBaseException(RecommendException e) throws RecommendException {
-        if (e.doLog()) {
-            if (e.logStacktrace()) {
-                LOG.error("Caught exception", e);
-            } else {
-                LOG.error("Caught exception: {}", e.getMessage());
-            }
-        }
-        throw e;
-    }
-
-    /**
      * Make sure we return 401 instead of 400 when there's no authorization header
      * @param e caught {@link MissingRequestHeaderException}
      * @param response the response of the failing request
@@ -81,18 +64,6 @@ public class GlobalExceptionHandler {
         } else {
             response.sendError(HttpStatus.BAD_REQUEST.value(), StringEscapeUtils.escapeJson(e.getMessage()));
         }
-    }
-
-    /**
-     * Make sure we return 400 instead of 500 when input validation fails
-     * @param e caught {@link ConstraintViolationException}
-     * @param response the response of the failing request
-     * @throws IOException if there's an error sending back the response
-     */
-    @ExceptionHandler
-    @SuppressWarnings("findsecbugs:XSS_SERVLET") // we control error message and use StringEscapeUtils so very low risk
-    public void handleInputValidationError(ConstraintViolationException e, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.BAD_REQUEST.value(), StringEscapeUtils.escapeJson(e.getMessage()));
     }
 
     /**
