@@ -202,11 +202,13 @@ public class RecommendService {
         }
 
         // TODO run getRecommendationsForEntitySetItems in parallel with getRecommendationsForEntityMetadata! (better use of Mono)
+        // 2024-12-04 PE Note that as part of ticket EA-3933 and changes to Set API we can longer return the items in a
+        // set in the same query, so as a temporary solution we are skipping this step
         // 2. get recommendations for items in associated set (if any), plus the item ids
-        EntitySetItemsResult recommendEntitySetItems = getRecommendationsForEntitySetItems(type, id, pageSize, apikey, token);
-        List<RecordId> setRecords = recommendEntitySetItems.itemsInSet;
-        Map<String, Recommendation> recommendSetItems = recommendEntitySetItems.recommendations;
-        LOG.trace("{} recommendations for entity set items {}/{} = {}", recommendSetItems.size(), type, id, recommendSetItems);
+        //EntitySetItemsResult recommendEntitySetItems = getRecommendationsForEntitySetItems(type, id, pageSize, apikey, token);
+        List<RecordId> setRecords = Collections.emptyList(); //recommendEntitySetItems.itemsInSet;
+        Map<String, Recommendation> recommendSetItems = Collections.emptyMap(); // recommendEntitySetItems.recommendations;
+        //LOG.trace("{} recommendations for entity set items {}/{} = {}", recommendSetItems.size(), type, id, recommendSetItems);
 
         // 3. get recommendations for entity metadata
         Map<String, Recommendation> recommendMetadata = Collections.emptyMap();
